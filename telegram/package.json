@@ -1,0 +1,7 @@
+{
+  "name": "telegram-skill",
+  "dependencies": {
+    "telegram": "^2.26.22",
+    "dotenv": "^17.4.2"
+  }
+}
