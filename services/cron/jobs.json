@@ -169,7 +169,7 @@
     "action": {
       "type": "shell",
       "command": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3 '/Users/dimitrisimonyan/Desktop/personal os/services/hh-autoapply/autoapply.py'",
-      "timeout": 1200
+      "timeout": 2400
     },
     "output": [
       {
@@ -190,7 +190,7 @@
     "action": {
       "type": "shell",
       "command": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3 '/Users/dimitrisimonyan/Desktop/personal os/services/hh-autoapply/autoapply.py'",
-      "timeout": 1200
+      "timeout": 2400
     },
     "output": [
       {
