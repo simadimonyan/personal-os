@@ -112,3 +112,6 @@ services/radar/model/
 
 # Граф источников — генерируемый артефакт (имена заметок и источников)
 tools/sources/graph/
+
+# Замок конвейера памяти — живёт на время прогона
+.claude/hooks/.memory-update.lock
