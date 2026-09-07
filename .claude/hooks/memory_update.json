@@ -1,0 +1,13 @@
+{
+  "_": "Настройки автоконвейера памяти (.claude/hooks/memory_update.py). Значения по умолчанию — в DEFAULTS самого скрипта, здесь только отличия.",
+  "_enabled": "false — конвейер молча выключен, /update-memory руками продолжает работать",
+  "enabled": true,
+  "_min_interval_min": "два /clear подряд не должны запускать конвейер дважды; пропущенные сессии подберёт следующий прогон",
+  "min_interval_min": 20,
+  "_model": "модель агента memory-extractor: sonnet дешевле, opus точнее в фактах",
+  "model": "sonnet",
+  "_telegram_export": "Шаг 0.5: выгружать упомянутые в сессии Telegram-диалоги (личная переписка уезжает в vault без спроса — выключить, если не нужно)",
+  "telegram_export": true,
+  "telegram_max_chats": 2,
+  "agent_timeout_min": 30
+}

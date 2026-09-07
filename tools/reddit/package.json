@@ -1,0 +1,9 @@
+{
+  "name": "reddit-tool",
+  "type": "module",
+  "private": true,
+  "description": "Транспорт к Reddit под живой сессией системного Chrome",
+  "dependencies": {
+    "playwright": "1.59.1"
+  }
+}

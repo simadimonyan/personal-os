@@ -1,0 +1,96 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 '/Users/dimitrisimonyan/Desktop/personal os/.claude/hooks/session_start_status.py'",
+            "timeout": 30,
+            "statusMessage": "Состояние Personal OS"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 '/Users/dimitrisimonyan/Desktop/personal os/.claude/hooks/risk_screen.py'",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 '/Users/dimitrisimonyan/Desktop/personal os/.claude/hooks/post_write_vault.py'",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 '/Users/dimitrisimonyan/Desktop/personal os/.claude/hooks/session_end_export.py'",
+            "timeout": 60,
+            "statusMessage": "Сессия → L0 Obsidian"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 '/Users/dimitrisimonyan/Desktop/personal os/.claude/hooks/context_guard.py'",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 '/Users/dimitrisimonyan/Desktop/personal os/.claude/hooks/agent_budget.py'",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 '/Users/dimitrisimonyan/Desktop/personal os/.claude/hooks/checkpoint.py' --hook precompact",
+            "timeout": 30,
+            "statusMessage": "Чекпоинт перед сжатием"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 '/Users/dimitrisimonyan/Desktop/personal os/.claude/hooks/checkpoint.py' --hook postcompact",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}

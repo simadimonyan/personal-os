@@ -1,0 +1,329 @@
+<title>JOI hologram</title>
+<style>
+  html,body{height:100%;margin:0;background:transparent;overflow:hidden}
+  #c{position:absolute;inset:0;width:100%;height:100%;display:block}
+</style>
+<canvas id="c"></canvas>
+<script>
+(() => {
+  const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const PW = 100, PH = 230;                      // low-res буфер фигуры
+
+  const C = {
+    hairDark:'#0b3560', hairMid:'#134f86', hairHi:'#2f86c9',
+    skin:'#2f9bd6', skinHi:'#6ec6f2', skinSh:'#175f9c',
+    neck:'#1b6aa6', cloth:'#0e4c80', clothHi:'#1f74b8', clothSh:'#093a63',
+    lip:'#54bff0', eyeWhite:'#cdefff', iris:'#1d6fb0', pupil:'#06263c', hi:'#e2fbff'
+  };
+
+  const holo = document.createElement('canvas'); holo.width=PW; holo.height=PH;
+  const hg = holo.getContext('2d');
+  const cRc = document.createElement('canvas'); cRc.width=PW; cRc.height=PH; const xR = cRc.getContext('2d');
+  const cGB = document.createElement('canvas'); cGB.width=PW; cGB.height=PH; const xGB = cGB.getContext('2d');
+
+  const ell=(g,x,y,rx,ry)=>{g.beginPath();g.ellipse(x,y,Math.max(.01,rx),Math.max(.01,ry),0,0,7);g.fill();};
+  const rect=(g,x,y,w,h)=>g.fillRect(x,y,w,h);
+  const poly=(g,p)=>{g.beginPath();g.moveTo(p[0][0],p[0][1]);for(let i=1;i<p.length;i++)g.lineTo(p[i][0],p[i][1]);g.closePath();g.fill();};
+
+  const EXPR = {
+    idle:   { smile:0.0, eyeOpen:1.0, brow:0,   tilt:0.00 },
+    happy:  { smile:1.8, eyeOpen:0.86, brow:0.6, tilt:0.00 },
+    curious:{ smile:0.5, eyeOpen:1.0, brow:2.2, tilt:0.10 }
+  };
+  let cur='idle', eyeOpen=1;
+
+  // ---------- СКЕЛЕТ ----------
+  const J = {};
+  for(const n of ['lean','head','aL','fL','aR','fR','hL','cL','hR','cR']) J[n]={a:0,v:0};
+  const LIM = {lean:0.7, head:0.7, aL:2.75, aR:2.75, fL:1.7, fR:1.7, hL:1.3, hR:1.3, cL:1.3, cR:1.3};
+  let rx_=0, ry_=0, rvx=0, rvy=0, lastT=0;
+  let agit=0;                                    // «раскрутка» — накапливается от рывков
+
+  window.avatarImpulse=(dx,dy)=>{
+    rvx -= dx*5.0; rvy += dy*5.0;
+    J.lean.v -= dx*0.012;  J.head.v -= dx*0.034;
+    J.aL.v -= dx*0.052; J.aR.v -= dx*0.046; J.fL.v -= dx*0.080; J.fR.v -= dx*0.072;
+    J.hL.v -= dx*0.030; J.hR.v -= dx*0.026; J.cL.v -= dx*0.055; J.cR.v -= dx*0.048;
+    J.aL.v -= dy*0.022; J.aR.v += dy*0.022; J.fL.v -= dy*0.028; J.fR.v += dy*0.028;
+    J.hL.v -= dy*0.013; J.hR.v += dy*0.013; J.cL.v -= dy*0.016; J.cR.v += dy*0.016;
+    agit += Math.hypot(dx,dy);
+  };
+  window.avatarSetExpr=(n)=>{ if(EXPR[n]) cur=n; };
+  window.avatarPulse=()=>{ nextGlitch=performance.now()/1000; };
+  // взгляд за курсором: цель из натива, сглаживание в кадре
+  let lookTX=0, lookTY=0, lkx=0, lky=0;
+  window.avatarLook=(x,y)=>{ lookTX=x; lookTY=y; };
+
+  // ---------- ХАРАКТЕР → ПОЗЫ И ЖЕСТЫ ----------
+  // углы: положительный = мах вправо; d:[min,max] — сколько держать позу, сек
+  const POSES={
+    'warm-playful':[
+      {n:'hip',  d:[5,8],  j:{aR:0.55,fR:-0.95,aL:-0.12,head:0.10,lean:-0.06}},                     // рука на бедре
+      {n:'wave', d:[2.5,4],j:{aR:2.35,fR:0.25,head:0.06}, osc:(t,o)=>{o.fR+=Math.sin(t*7)*0.35;}},  // машет
+      {n:'hair', d:[3.5,6],j:{aL:-2.15,fL:-0.55,head:-0.10}, osc:(t,o)=>{o.fL+=Math.sin(t*2.2)*0.12;}}, // поправляет волосы
+      {n:'sway', d:[6,10], j:{}, osc:(t,o)=>{const s=Math.sin(t*2.0);                                // пританцовывает
+        o.lean=s*0.10; o.aL=-0.2-s*0.28; o.aR=0.2-s*0.28; o.head=s*0.13; o.hL=-s*0.09; o.hR=-s*0.09;}},
+      {n:'coy',  d:[4,7],  j:{aL:0.30,fL:0.55,aR:-0.30,fR:-0.55,head:0.15,cL:0.4,hL:-0.16,lean:0.05}}, // игриво, носок за носок
+    ],
+    'calm-elegant':[
+      {n:'clasp',d:[7,12], j:{aL:0.32,fL:0.62,aR:-0.32,fR:-0.62,head:0.05}},                        // руки сложены
+      {n:'gaze', d:[5,8],  j:{head:-0.17,lean:-0.05,aR:0.25,fR:-0.35}},                             // смотрит вдаль
+      {n:'grace',d:[6,9],  j:{aR:0.95,fR:-0.30,aL:-0.25,head:0.08,lean:0.05},
+        osc:(t,o)=>{o.fR+=Math.sin(t*1.4)*0.08;}},                                                  // плавный жест кистью
+      {n:'shift',d:[6,10], j:{lean:0.09,hR:0.15,cR:-0.24,aL:-0.18,aR:0.18,head:0.04}},              // элегантный перенос веса
+    ],
+    'bold':[
+      {n:'cross',d:[6,11], j:{aL:0.55,fL:1.15,aR:-0.55,fR:-1.15,head:0.08,lean:0.05}},              // руки скрещены
+      {n:'hips', d:[5,9],  j:{aL:-0.6,fL:1.0,aR:0.6,fR:-1.0,lean:0.08,head:-0.06}},                 // обе руки в боки
+      {n:'cock', d:[5,8],  j:{lean:0.17,hR:0.2,cR:-0.3,head:0.13,aR:0.5,fR:-0.85}},                 // бедро вбок, вызов
+      {n:'flick',d:[2.5,4],j:{aR:1.6,fR:0.3,head:-0.08}, osc:(t,o)=>{o.fR+=Math.sin(t*5)*0.25;}},   // пренебрежительный взмах
+      {n:'tap',  d:[4,6],  j:{aL:0.55,fL:1.15,aR:-0.55,fR:-1.15},
+        osc:(t,o)=>{o.cR=Math.max(0,Math.sin(t*6))*0.35;}},                                          // нетерпеливо стучит ногой
+    ]
+  };
+  let charId='warm-playful';
+  window.avatarSetCharacter=(id)=>{ if(POSES[id]) charId=id; pose=null; nextPoseAt=performance.now()/1000+1.2; };
+
+  let pose=null, poseUntil=0, poseT0=0, nextPoseAt=2.5;
+  function pickPose(t){
+    const list=POSES[charId];
+    pose=list[Math.random()*list.length|0]; poseT0=t;
+    poseUntil=t+pose.d[0]+Math.random()*(pose.d[1]-pose.d[0]);
+  }
+
+  // ---------- ПАДЕНИЕ / ПОДЪЁМ ----------
+  let state='idle', stateT=0, fallDir=1, recoverAt=0;
+  const fallPose=(dir)=>({lean:dir*0.55, head:dir*0.5, drop:1,
+    aL:dir*0.5-0.3, fL:dir*0.75, aR:dir*0.5+0.3, fR:dir*0.75,
+    hL:-0.62, cL:0.95, hR:0.62, cR:-0.95});
+
+  const clampA=(o,m)=>{ if(o.a> m){o.a= m; if(o.v>0)o.v*=-0.35;} if(o.a<-m){o.a=-m; if(o.v<0)o.v*=-0.35;} };
+  function spring(o,rest,K,D,dt,max){ o.v+=(-K*(o.a-rest)-D*o.v)*dt; o.a+=o.v*dt; clampA(o,max); }
+
+  // ---------- РИСОВАНИЕ ФИГУРЫ ПО ЧАСТЯМ ----------
+  function drawHeadBack(g){
+    g.fillStyle=C.hairDark; ell(g,0,-18,16,18); rect(g,-20,-20,40,66); ell(g,0,46,17,11);
+  }
+  function drawHeadFront(g,e,open){
+    g.fillStyle=C.skin; ell(g,0,-18,15,18); ell(g,0,-5,9,8);
+    g.fillStyle=C.skinSh; ell(g,-12,-15,4,11); ell(g,12,-15,4,11);
+    g.fillStyle=C.skinHi; ell(g,-6,-13,3.5,3.5); ell(g,6,-13,3.5,3.5); ell(g,0,-26,6,4);
+    g.fillStyle=C.hairMid; ell(g,0,-31,17,11); ell(g,-15,-14,6,18); ell(g,15,-14,6,18);
+    ell(g,-6,-24,4,6); ell(g,6,-24,4,6); ell(g,0,-23,4,7);
+    g.fillStyle=C.hairHi; ell(g,-8,-35,3,6); ell(g,8,-34,3,6);
+    rect(g,-17,-14,1.6,20); rect(g,15.4,-14,1.6,20);
+    g.globalAlpha=.45; g.fillStyle=C.hairDark; rect(g,-13,-14,1,17); rect(g,12,-14,1,17); rect(g,-0.5,-40,1,10); g.globalAlpha=1;
+    g.fillStyle=C.hairMid; rect(g,-10,-24-e.brow,7,1.5); rect(g,3,-24-e.brow*.7,7,1.5);
+    const gx=lkx*1.2, gy=-lky*1.0;                 // зрачки к курсору (AppKit y — вверх)
+    const eye=(ex)=>{
+      g.fillStyle=C.eyeWhite; ell(g,ex,-19,3.3,2.4*open+.02);
+      if(open>.35){
+        g.fillStyle=C.iris;  ell(g,ex+gx,-19+gy,2.0,2.0);
+        g.fillStyle=C.pupil; ell(g,ex+gx*1.15,-19+gy*1.15,.95,.95);
+        g.fillStyle=C.hi;    ell(g,ex+gx-.9,-19.8+gy,.7,.7);
+      }
+      g.fillStyle=C.hairDark; rect(g,ex-3.3,-21,6.6,1);
+    };
+    eye(-7); eye(7);
+    g.fillStyle=C.skinSh; rect(g,-0.5,-17,1.3,4); g.fillStyle=C.skinHi; rect(g,-1.5,-18,1,4);
+    g.fillStyle=C.skinSh; ell(g,-1.6,-13,.8,.8); ell(g,1.6,-13,.8,.8);
+    g.fillStyle=C.lip; ell(g,0,-9,4.6,1.3);
+    g.fillStyle=C.skinHi; ell(g,0,-7.5,3.7,1.4+e.smile*.15);
+    g.fillStyle=C.skinSh; rect(g,-5,-9,10,.8);
+    if(e.smile>0){ g.fillStyle=C.lip; ell(g,-5,-9.4-e.smile*.7,1.1,1.1); ell(g,5,-9.4-e.smile*.7,1.1,1.1); }
+  }
+  function drawLeg(g,side,hip,calf){
+    g.save(); g.rotate(hip);
+    g.fillStyle=C.skin;   ell(g,0,26,6.5,30);
+    g.fillStyle=C.skinSh; ell(g,side*-3,30,2.4,24);
+    g.fillStyle=C.skinHi; ell(g,side*2,24,2,20);
+    g.translate(0,52); g.rotate(calf);
+    g.fillStyle=C.skin;   ell(g,0,20,5,24);
+    g.fillStyle=C.skinSh; ell(g,side*-1.6,22,1.6,18);
+    g.restore();
+  }
+  function drawArm(g,side,sh,fore){
+    g.save(); g.rotate(sh);
+    g.fillStyle=C.skin;   ell(g,side*4,24,5,20);
+    g.fillStyle=C.skinSh; ell(g,side*7,26,2.5,16);
+    g.fillStyle=C.skinHi; ell(g,side*3,22,2.2,8);
+    g.translate(side*3,42); g.rotate(fore);
+    g.fillStyle=C.skin;   ell(g,side*-1,16,4.4,20);
+    g.fillStyle=C.skin;   ell(g,side*-2,40,4.4,5.5);
+    g.restore();
+  }
+  function drawTorso(g){
+    g.fillStyle=C.neck; rect(g,45,40,10,14);
+    g.fillStyle=C.skin; ell(g,31,58,7,7); ell(g,69,58,7,7); ell(g,50,58,13,9);
+    g.fillStyle=C.skinSh; ell(g,50,52,7,3);
+    g.fillStyle=C.skinHi; ell(g,46,57,3,3); ell(g,54,57,3,3);
+    g.fillStyle=C.cloth;
+    rect(g,38,49,3,12); rect(g,59,49,3,12);
+    poly(g,[[33,60],[67,60],[63,100],[68,122],[66,152],[34,152],[32,122],[37,100]]);
+    g.fillStyle=C.clothSh;
+    poly(g,[[33,60],[37,100],[32,122],[34,152],[44,152],[42,122],[45,100],[47,60]]);
+    g.fillStyle=C.clothHi; rect(g,49,62,3,88); ell(g,50,74,6,12);
+    g.globalAlpha=.5; g.fillStyle=C.clothSh; rect(g,42,102,1.2,48); rect(g,58,102,1.2,48); g.globalAlpha=1;
+  }
+  function drawGirl(g,e,open){
+    g.clearRect(0,0,PW,PH); g.imageSmoothingEnabled=true;
+    const headA = J.head.a + e.tilt;
+    g.save(); g.translate(50,42); g.rotate(headA); drawHeadBack(g); g.restore();
+    g.save(); g.translate(44,126); drawLeg(g,-1,J.hL.a,J.cL.a); g.restore();
+    g.save(); g.translate(56,126); drawLeg(g, 1,J.hR.a,J.cR.a); g.restore();
+    drawTorso(g);
+    g.save(); g.translate(31,58); drawArm(g,-1,J.aL.a,J.fL.a); g.restore();
+    g.save(); g.translate(69,58); drawArm(g, 1,J.aR.a,J.fR.a); g.restore();
+    g.save(); g.translate(50,42); g.rotate(headA); drawHeadFront(g,e,open); g.restore();
+    g.globalCompositeOperation='destination-out';
+    const grd=g.createLinearGradient(0,196,0,PH); grd.addColorStop(0,'rgba(0,0,0,0)'); grd.addColorStop(1,'rgba(0,0,0,1)');
+    g.fillStyle=grd; rect(g,0,194,PW,PH-194);
+    for(let y=200;y<PH;y+=2){ g.globalAlpha=(y-198)/34; rect(g,0,y,PW,1); }
+    g.globalAlpha=1; g.globalCompositeOperation='source-over';
+  }
+  function tintInto(x,r,gg,b){
+    x.clearRect(0,0,PW,PH); x.globalCompositeOperation='source-over'; x.drawImage(holo,0,0);
+    x.globalCompositeOperation='multiply'; x.fillStyle=`rgb(${r*255|0},${gg*255|0},${b*255|0})`; x.fillRect(0,0,PW,PH);
+    x.globalCompositeOperation='destination-in'; x.drawImage(holo,0,0);
+  }
+
+  // ---------- размеры / подложка ----------
+  let cw,ch,dpr,scale,dw,dh,px,py,emX,emY;
+  function resize(){
+    dpr=Math.min(window.devicePixelRatio||1,2);
+    cw=cv.width=Math.floor(innerWidth*dpr); ch=cv.height=Math.floor(innerHeight*dpr);
+    scale=Math.max(2,Math.floor(Math.min(ch*0.92/PH, cw*0.96/PW)))*0.9;
+    dw=PW*scale; dh=PH*scale; px=(cw-dw)/2; py=ch-dh-6*dpr;
+    emX=cw/2; emY=py+dh*0.95; buildScan();
+  }
+  let scanPat=null;
+  function buildScan(){
+    const gap=Math.max(2,Math.round(2*dpr));
+    const t=document.createElement('canvas'); t.width=1;t.height=gap+1;
+    const x=t.getContext('2d'); x.fillStyle='rgba(0,8,18,.42)'; x.fillRect(0,0,1,1);
+    scanPat=ctx.createPattern(t,'repeat');
+  }
+  const dust=[]; function seed(){ dust.length=0; for(let i=0;i<24;i++) dust.push(m(true)); }
+  function m(r){ return {x:(Math.random()*2-1)*dw*0.22, y:r?Math.random():0, s:.6+Math.random()*1.3, ph:Math.random()*6.28}; }
+  function drawBase(t){
+    const g=ctx.createLinearGradient(0,emY,0,py+dh*0.55);
+    g.addColorStop(0,'rgba(87,224,255,.12)'); g.addColorStop(1,'rgba(87,224,255,0)');
+    ctx.fillStyle=g; ctx.beginPath();
+    ctx.moveTo(emX-5*dpr,emY); ctx.lineTo(emX-dw*0.15,py+dh*0.55); ctx.lineTo(emX+dw*0.15,py+dh*0.55); ctx.lineTo(emX+5*dpr,emY); ctx.closePath(); ctx.fill();
+    ctx.globalCompositeOperation='lighter';
+    for(const p of dust){ const yy=emY-p.y*(dh*0.5); const wob=Math.sin(t*0.7+p.ph)*5*dpr;
+      ctx.fillStyle=`rgba(150,235,255,${(Math.sin(p.y*Math.PI)*0.4).toFixed(3)})`; ctx.fillRect(emX+p.x+wob,yy,p.s*dpr,p.s*dpr); }
+    ctx.globalCompositeOperation='source-over';
+    const eg=ctx.createRadialGradient(emX,emY,0,emX,emY,44*dpr);
+    eg.addColorStop(0,'rgba(87,224,255,.38)'); eg.addColorStop(1,'rgba(87,224,255,0)');
+    ctx.fillStyle=eg; ctx.beginPath(); ctx.ellipse(emX,emY,44*dpr,11*dpr,0,0,7); ctx.fill();
+  }
+
+  // ---------- главный цикл ----------
+  let glitchUntil=0, nextGlitch=1.4, flick=1, nextDip=2.5, dipUntil=0;
+  function blink(){ if(reduce) return; setTimeout(()=>{ eyeOpen=.06;
+    setTimeout(()=>{ eyeOpen=1; blink(); },110); }, 2400+Math.random()*4000); }
+  blink();
+
+  function frame(now){
+    const t=now/1000;
+    let dt = lastT ? Math.min(0.05, t-lastT) : 0.016; lastT=t;
+    agit *= Math.exp(-dt*1.6);
+    lkx += (lookTX-lkx)*Math.min(1,dt*9); lky += (lookTY-lky)*Math.min(1,dt*9);   // плавный взгляд
+
+    // --- машина состояний: idle → falling → down → gettingUp → idle ---
+    if(state==='idle' && t>recoverAt && agit>460){
+      state='falling'; stateT=t; fallDir = rvx>=0?1:-1; pose=null; agit=0; nextGlitch=t;
+    }
+    if(state==='falling' && t-stateT>0.9){ state='down'; stateT=t; nextGlitch=t; }
+    else if(state==='down' && t-stateT>1.15){ state='gettingUp'; stateT=t; }
+
+    // --- целевые смещения суставов (поза характера или падение) ---
+    const off={};
+    if(state==='idle'){
+      if(!reduce){
+        if(!pose && t>nextPoseAt) pickPose(t);
+        if(pose && t>poseUntil){ pose=null; nextPoseAt=t+4+Math.random()*7; }
+        if(pose){
+          const bl=Math.min(1,(t-poseT0)/0.8), e=bl*bl*(3-2*bl);
+          const o={}; for(const k in pose.j) o[k]=pose.j[k];
+          if(pose.osc) pose.osc(t-poseT0,o);
+          for(const k in o) off[k]=(off[k]||0)+o[k]*e;
+        }
+      }
+    } else {
+      const f=fallPose(fallDir);
+      const e = state==='gettingUp' ? Math.max(0,1-(t-stateT)/1.5) : Math.min(1,(t-stateT)/0.5);
+      for(const k in f) off[k]=f[k]*e;
+      if(state==='gettingUp' && (t-stateT)>1.5 && Math.abs(J.lean.a)<0.08){
+        state='idle'; recoverAt=t+4; nextPoseAt=t+2.5; window.avatarPulse();
+      }
+      if(state!=='idle' && Math.random()<0.06) nextGlitch=t;   // сигнал «сбоит» пока лежит
+    }
+
+    // --- физика: пружины к целям ---
+    const idle = reduce?0:1;
+    const KD = state==='idle' ? [70,8.5] : state==='falling' ? [26,5] : state==='down' ? [30,7] : [42,8.5];
+    const K=KD[0], D=KD[1];
+    const w = Math.sin(t*0.22)*idle;
+    spring(J.lean, (off.lean||0) + idle*(-0.04+Math.sin(t*0.5)*0.03), 60, 8, dt, LIM.lean + (state!=='idle'?0.2:0));
+    spring(J.head, (off.head||0) + idle*(0.05+Math.sin(t*0.8)*0.035) - J.lean.a*0.6 + lkx*0.14, K, D, dt, LIM.head);
+    spring(J.aL, (off.aL||0) + idle*(-0.13+Math.sin(t*0.65)*0.045),    K, D, dt, LIM.aL);
+    spring(J.fL, (off.fL||0) + idle*(-0.06+Math.sin(t*0.65+0.5)*0.04), K, D, dt, LIM.fL);
+    spring(J.aR, (off.aR||0) + idle*( 0.16+Math.sin(t*0.65+1.4)*0.05), K, D, dt, LIM.aR);
+    spring(J.fR, (off.fR||0) + idle*( 0.20+Math.sin(t*0.65+1.9)*0.04), K, D, dt, LIM.fR);
+    spring(J.hL, (off.hL||0) + idle*(-0.05 - w*0.06), K, D, dt, LIM.hL);
+    spring(J.cL, (off.cL||0) + idle*( 0.08 + w*0.10), K, D, dt, LIM.cL);
+    spring(J.hR, (off.hR||0) + idle*( 0.06 - w*0.06), K, D, dt, LIM.hR);
+    spring(J.cR, (off.cR||0) + idle*(-0.04 + w*0.10), K, D, dt, LIM.cR);
+    const restX = idle*Math.sin(t*0.55)*3*dpr;
+    const restY = (off.drop||0)*dh*0.115;                       // при падении оседает вниз
+    rvx += (-90*(rx_-restX) - 9*rvx)*dt; rx_ += rvx*dt;
+    rvy += (-90*(ry_-restY) - 9*rvy)*dt; ry_ += rvy*dt;
+    const CL=dw*0.5; rx_=Math.max(-CL,Math.min(CL,rx_)); ry_=Math.max(-CL,Math.min(CL,ry_));
+
+    // --- мерцание / глитч ---
+    if(reduce){ flick=1; } else {
+      flick=0.9+Math.sin(t*40)*0.03+(Math.random()-0.5)*0.05;
+      if(t>nextDip){ dipUntil=t+0.05; nextDip=t+2.5+Math.random()*5; } if(t<dipUntil) flick=0.45;
+      if(state==='down') flick*=0.75;                           // лежит — сигнал слабее
+    }
+    let ca=Math.max(1,scale*0.5), glitchOn=false;
+    if(!reduce){ if(t>nextGlitch){ glitchUntil=t+0.12+Math.random()*0.12; nextGlitch=t+2.4+Math.random()*4.8; }
+      if(t<glitchUntil){ glitchOn=true; ca=scale*(1.6+Math.random()*1.4); } }
+    const floatY=reduce?0:Math.sin(t*1.05)*7*dpr;
+
+    // --- перерисовка фигуры в позе ---
+    const openEff = state==='down' ? 0.22 : state==='falling' ? 0.55 : eyeOpen;
+    drawGirl(hg, EXPR[cur], openEff);
+    tintInto(xR,1,0,0); tintInto(xGB,0,1,1);
+
+    // --- вывод ---
+    ctx.clearRect(0,0,cw,ch); drawBase(t);
+    ctx.save();
+    ctx.translate(px+dw/2+rx_, py+dh*0.90+floatY+ry_);
+    ctx.rotate(J.lean.a);
+    ctx.imageSmoothingEnabled=false; const lx=-dw/2, ly=-dh*0.90; ctx.globalAlpha=flick;
+    ctx.save(); ctx.filter=`blur(${(scale*1.1).toFixed(1)}px)`; ctx.globalAlpha=flick*0.4; ctx.globalCompositeOperation='lighter';
+    ctx.drawImage(holo,lx,ly,dw,dh); ctx.restore();
+    ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=flick;
+    ctx.drawImage(cRc, lx-ca,ly,dw,dh); ctx.drawImage(cGB, lx+ca,ly,dw,dh);
+    if(glitchOn){ for(let g=0;g<3;g++){ const sh=2+(Math.random()*5|0), sy=Math.random()*(PH-sh)|0, off2=(Math.random()*2-1)*scale*4;
+      ctx.drawImage(holo,0,sy,PW,sh, lx+off2, ly+sy*scale, dw, sh*scale); } }
+    if(!reduce){ const sw=((t*0.12)%1.3)-0.15, sy=ly+sw*dh;
+      const band=ctx.createLinearGradient(0,sy-6*dpr,0,sy+6*dpr);
+      band.addColorStop(0,'rgba(190,242,255,0)'); band.addColorStop(.5,'rgba(190,242,255,.30)'); band.addColorStop(1,'rgba(190,242,255,0)');
+      ctx.fillStyle=band; ctx.fillRect(lx,sy-6*dpr,dw,12*dpr); }
+    ctx.restore();
+    ctx.globalAlpha=1; ctx.globalCompositeOperation='source-atop';
+    ctx.fillStyle=scanPat; ctx.fillRect(0,0,cw,ch);
+    ctx.globalCompositeOperation='source-over';
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  addEventListener('resize',()=>{ resize(); seed(); });
+  resize(); seed();
+})();
+</script>

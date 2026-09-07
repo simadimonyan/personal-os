@@ -1,0 +1,6 @@
+# Векторная база и состояние
+radar.db
+state.json
+logs/
+
+# Модель ONNX (448MB + 16MB токенайзер) — в Git LFS (см. корневой .gitattributes)

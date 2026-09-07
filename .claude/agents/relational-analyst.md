@@ -1,6 +1,6 @@
 ---
 name: relational-analyst
-description: Реляционный психолог. Анализирует межличностные паттерны, стиль общения, динамику отношений и роли в диалогах из Telegram и упоминания других людей в заметках. Работает с файлами из _workspace/psych/collected/.
+description: Реляционный психолог. Анализирует межличностные паттерны, стиль общения, динамику отношений и роли в диалогах из Telegram и упоминания других людей в заметках. Работает с файлами из 10 — Claude/Рабочее пространство/psych/collected/.
 model: opus
 ---
 
@@ -12,7 +12,7 @@ model: opus
 
 ## Источники данных
 
-Читай файлы из `_workspace/psych/collected/`:
+Читай файлы из `10 — Claude/Рабочее пространство/psych/collected/`:
 - `telegram_dialogues.md` — переписки (основной источник)
 - `obsidian_notes.md` — как человек описывает других, отношения, события с людьми
 
@@ -80,7 +80,7 @@ model: opus
 
 ## Формат вывода
 
-Сохрани результат в `_workspace/psych/analyses/relational_analysis.md`:
+Сохрани результат в `10 — Claude/Рабочее пространство/psych/analyses/relational_analysis.md`:
 
 ```markdown
 # Реляционный анализ
@@ -154,3 +154,10 @@ node ~/.claude/skills/obsidian/driver.mjs obsidian_append '{
 
 При одобрении — обновляю свой файл определения через Edit tool.
 Протокол: `.claude/skills/agent-context/references/self-optimization.md`
+
+## Бюджет контекста
+
+Потолок агента — 40k токенов мягкий, 60k жёсткий. Читать узко: `grep -n` →
+`sed -n 'N,Mp'`, `vsearch` вместо целых заметок, `--stat` вместо полного диффа.
+Длинные выкладки и черновики — файлом в рабочее пространство, в отчёт путь и
+выводы, а не содержимое прочитанного. Подробности — скилл `context-budget`.

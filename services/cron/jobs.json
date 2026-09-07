@@ -1,0 +1,286 @@
+[
+  {
+    "id": "example-freelance-blast",
+    "schedule": "0 11 * * 1,4",
+    "enabled": false,
+    "description": "Пример: рассылка интро по фриланс-чатам (пн и чт в 11:00). Текст — в intro.txt, чаты — known_chats.txt. ВКЛЮЧАТЬ ОСОЗНАННО: не слать один и тот же текст часто.",
+    "requires": [
+      "internet"
+    ],
+    "action": {
+      "type": "shell",
+      "command": "bash '/Users/dimitrisimonyan/Desktop/personal os/.claude/skills/tg-freelance-blast/scripts/blast.sh' '/Users/dimitrisimonyan/Desktop/personal os/services/cron/messages/intro.txt' '/Users/dimitrisimonyan/Desktop/personal os/.claude/skills/tg-freelance-blast/references/known_chats.txt' 40 70"
+    },
+    "output": [
+      {
+        "to": "obsidian",
+        "path": "10 — Claude/Рабочее пространство/personal-os/Рассылки.md",
+        "header": "## Фриланс-рассылка"
+      }
+    ]
+  },
+  {
+    "id": "example-channel-post",
+    "schedule": "0 10 * * *",
+    "enabled": false,
+    "description": "Пример: ежедневный пост на ТГ-канал, сгенерированный локальным Claude. Требует поднятого claude-local-api.",
+    "requires": [
+      "internet",
+      "claude"
+    ],
+    "action": {
+      "type": "prompt",
+      "model": "sonnet",
+      "prompt": "Напиши короткий пост для Telegram-канала (3-5 предложений) на тему продуктивности и фокуса. Живой тон, без клише, без хэштегов. Только текст поста."
+    },
+    "output": [
+      {
+        "to": "telegram",
+        "chat": "@your_channel"
+      }
+    ]
+  },
+  {
+    "id": "news-ingest",
+    "schedule": "@every 1h",
+    "enabled": true,
+    "description": "Фоновый сбор RSS в SQLite с векторизацией (ONNX e5-small)",
+    "requires": [
+      "internet"
+    ],
+    "action": {
+      "type": "shell",
+      "command": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3 '/Users/dimitrisimonyan/Desktop/personal os/services/radar/radar.py' ingest --vectorize-pending",
+      "timeout": 1800
+    },
+    "output": [
+      {
+        "to": "log"
+      }
+    ],
+    "report": false
+  },
+  {
+    "id": "freelance-blast-am",
+    "schedule": "0 11 * * *",
+    "enabled": true,
+    "description": "Рассылка сопроводительного по фриланс-чатам (утро 11:00)",
+    "action": {
+      "type": "shell",
+      "command": "bash '/Users/dimitrisimonyan/Desktop/personal os/.claude/skills/tg-freelance-blast/scripts/blast.sh' '/Users/dimitrisimonyan/Desktop/personal os/services/cron/messages/intro.txt' '/Users/dimitrisimonyan/Desktop/personal os/.claude/skills/tg-freelance-blast/references/known_chats.txt' 40 70",
+      "timeout": 3600
+    },
+    "output": [
+      {
+        "to": "obsidian",
+        "path": "10 — Claude/Рабочее пространство/personal-os/Рассылки.md"
+      }
+    ],
+    "requires": [
+      "internet"
+    ]
+  },
+  {
+    "id": "freelance-blast-pm",
+    "schedule": "0 17 * * *",
+    "enabled": true,
+    "description": "Рассылка сопроводительного по фриланс-чатам (вечер 17:00)",
+    "action": {
+      "type": "shell",
+      "command": "bash '/Users/dimitrisimonyan/Desktop/personal os/.claude/skills/tg-freelance-blast/scripts/blast.sh' '/Users/dimitrisimonyan/Desktop/personal os/services/cron/messages/intro.txt' '/Users/dimitrisimonyan/Desktop/personal os/.claude/skills/tg-freelance-blast/references/known_chats.txt' 40 70",
+      "timeout": 3600
+    },
+    "output": [
+      {
+        "to": "obsidian",
+        "path": "10 — Claude/Рабочее пространство/personal-os/Рассылки.md"
+      }
+    ],
+    "requires": [
+      "internet"
+    ]
+  },
+  {
+    "id": "digitcode-digest",
+    "schedule": "0 10 * * *",
+    "enabled": true,
+    "description": "Ежедневные рекомендации к публикации в бота-редактора @digit_code (без авто-постинга)",
+    "action": {
+      "type": "shell",
+      "command": "'/Users/dimitrisimonyan/Desktop/personal os/services/tg-blog-editor/.venv/bin/python' '/Users/dimitrisimonyan/Desktop/personal os/services/tg-blog-editor/bot.py' enqueue --n 5",
+      "timeout": 900
+    },
+    "output": [
+      {
+        "to": "log"
+      }
+    ],
+    "requires": [
+      "internet",
+      "claude"
+    ]
+  },
+  {
+    "id": "blog-autopublish",
+    "schedule": "@every 1h",
+    "enabled": true,
+    "description": "Страховка: публикует черновики блога, провисевшие без решения дольше AUTO_PUBLISH_HOURS",
+    "action": {
+      "type": "shell",
+      "command": "'/Users/dimitrisimonyan/Desktop/personal os/services/tg-blog-editor/.venv/bin/python' '/Users/dimitrisimonyan/Desktop/personal os/services/tg-blog-editor/bot.py' autopublish",
+      "timeout": 300
+    },
+    "output": [
+      {
+        "to": "log"
+      }
+    ],
+    "requires": [
+      "internet"
+    ],
+    "report": false
+  },
+  {
+    "id": "hh-responses",
+    "schedule": "30 10,20 * * *",
+    "enabled": true,
+    "description": "Ответы работодателей на hh: приглашения и отказы с прошлого прогона",
+    "requires": [
+      "internet"
+    ],
+    "action": {
+      "type": "shell",
+      "command": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3 '/Users/dimitrisimonyan/Desktop/personal os/services/hh-autoapply/responses.py'",
+      "timeout": 600
+    },
+    "output": [
+      {
+        "to": "obsidian",
+        "path": "10 — Claude/Рабочее пространство/personal-os/HH ответы.md"
+      }
+    ],
+    "report": false
+  },
+  {
+    "id": "hh-autoapply-am",
+    "schedule": "0 10 * * *",
+    "enabled": true,
+    "description": "Авто-отклик на hh (10:00)",
+    "action": {
+      "type": "shell",
+      "command": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3 '/Users/dimitrisimonyan/Desktop/personal os/services/hh-autoapply/autoapply.py'",
+      "timeout": 1200
+    },
+    "output": [
+      {
+        "to": "obsidian",
+        "path": "10 — Claude/Рабочее пространство/personal-os/HH отклики.md"
+      }
+    ],
+    "requires": [
+      "internet"
+    ],
+    "report": false
+  },
+  {
+    "id": "hh-autoapply-day",
+    "schedule": "0 18 * * *",
+    "enabled": true,
+    "description": "Авто-отклик на hh (18:00)",
+    "action": {
+      "type": "shell",
+      "command": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3 '/Users/dimitrisimonyan/Desktop/personal os/services/hh-autoapply/autoapply.py'",
+      "timeout": 1200
+    },
+    "output": [
+      {
+        "to": "obsidian",
+        "path": "10 — Claude/Рабочее пространство/personal-os/HH отклики.md"
+      }
+    ],
+    "requires": [
+      "internet"
+    ],
+    "report": false
+  },
+  {
+    "id": "memory-update",
+    "schedule": "0 4 * * *",
+    "enabled": true,
+    "description": "Страховка для конвейера памяти: если сессии не закрывались (хук SessionEnd не срабатывал), ночью догнать L0→L4. Нет новых сессий — выходит за секунды.",
+    "requires": [
+      "internet"
+    ],
+    "action": {
+      "type": "shell",
+      "command": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3 '/Users/dimitrisimonyan/Desktop/personal os/.claude/hooks/memory_update.py' --force --reason cron",
+      "timeout": 3600
+    },
+    "output": [
+      {
+        "to": "log"
+      }
+    ],
+    "report": false
+  },
+  {
+    "id": "tg-chats-sync",
+    "schedule": "20 9 * * *",
+    "enabled": true,
+    "description": "Синк базы чатов Telegram: диалоги всех аккаунтов фермы → chats.db (вс — полный проход). Чтобы агенты искали чаты в базе, а не ходили в Telegram.",
+    "action": {
+      "type": "shell",
+      "command": "bash '/Users/dimitrisimonyan/.claude/skills/telegram/scripts/daily-sync.sh'",
+      "timeout": 900
+    },
+    "output": [
+      {
+        "to": "log"
+      }
+    ],
+    "requires": [
+      "internet"
+    ],
+    "report": false
+  },
+  {
+    "id": "tg-queue-run",
+    "schedule": "10 13,21 * * *",
+    "enabled": true,
+    "description": "Очередь заходов Telegram: два прохода в день по 2 чата (acc7, английская ниша). Дневной потолок аккаунта — 4 захода, лишнего проход не возьмёт.",
+    "action": {
+      "type": "shell",
+      "command": "bash '/Users/dimitrisimonyan/.claude/skills/telegram/scripts/queue-run.sh' acc7 2",
+      "timeout": 900
+    },
+    "output": [
+      {
+        "to": "log"
+      }
+    ],
+    "requires": [
+      "internet"
+    ],
+    "report": false
+  },
+  {
+    "id": "tg-queue-run-acc9",
+    "schedule": "40 12,20 * * *",
+    "enabled": true,
+    "description": "Очередь заходов Telegram: два прохода в день по 2 чата (acc9, грузинский номер — фриланс- и job-чаты). Дневной потолок аккаунта — 3 захода, лишнего проход не возьмёт.",
+    "action": {
+      "type": "shell",
+      "command": "bash '/Users/dimitrisimonyan/.claude/skills/telegram/scripts/queue-run.sh' acc9 2",
+      "timeout": 900
+    },
+    "output": [
+      {
+        "to": "log"
+      }
+    ],
+    "requires": [
+      "internet"
+    ],
+    "report": false
+  }
+]

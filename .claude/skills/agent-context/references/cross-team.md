@@ -36,7 +36,7 @@
    b. Ждёт результат (или запускает параллельно если не блокирует)
    c. Передаёт результат запросившей команде
 
-3. Результат сохраняется в _workspace/{requesting-team}/cross-team/{source-team}_{artifact}.md
+3. Результат сохраняется в 10 — Claude/Рабочее пространство/{requesting-team}/cross-team/{source-team}_{artifact}.md
 ```
 
 ### Прямой запрос к personal-os агентам
@@ -59,7 +59,7 @@ node ~/.claude/skills/obsidian/driver.mjs obsidian_search '{"query":"...", "limi
 ```
 dev-lab запрашивает PRD:
 → мастер-оркестратор создаёт задачу для product-manager (startup-lab)
-→ product-manager создаёт PRD в _workspace/dev/brief.md
+→ product-manager создаёт PRD в 10 — Claude/Рабочее пространство/dev/brief.md
 → dev-lab начинает работу
 ```
 
@@ -67,7 +67,7 @@ dev-lab запрашивает PRD:
 ```
 growth-marketer нужен психологический профиль аудитории:
 → мастер-оркестратор активирует psych-team в режиме "анализ типичного пользователя"
-→ psych-team создаёт профиль в _workspace/startup/research/user_psych.md
+→ psych-team создаёт профиль в 10 — Claude/Рабочее пространство/startup/research/user_psych.md
 → growth-marketer использует для ICP
 ```
 
@@ -82,9 +82,9 @@ growth-marketer нужен психологический профиль ауд�
 ## Файловая конвенция кросс-командных артефактов
 
 ```
-_workspace/{команда}/cross-team/{источник}_{тип}_{дата}.md
+10 — Claude/Рабочее пространство/{команда}/cross-team/{источник}_{тип}_{дата}.md
 ```
 
 Примеры:
-- `_workspace/dev/cross-team/startup-lab_prd_2026-05-31.md`
-- `_workspace/startup/cross-team/psych-team_user-profile_2026-05-31.md`
+- `10 — Claude/Рабочее пространство/dev/cross-team/startup-lab_prd_2026-05-31.md`
+- `10 — Claude/Рабочее пространство/startup/cross-team/psych-team_user-profile_2026-05-31.md`

@@ -49,7 +49,7 @@ def _detect_sessions_dir():
     return projects
 
 VAULT_DIR = _detect_vault_dir()
-OUTPUT_DIR = VAULT_DIR / "Claude-Sessions"
+OUTPUT_DIR = Path(os.environ.get("CLAUDE_SESSIONS_OUTPUT", str(VAULT_DIR / "Claude-Sessions")))
 SKILLS_DIR = VAULT_DIR / ".claude" / "skills"
 SESSIONS_DIR = _detect_sessions_dir()
 
@@ -128,6 +128,7 @@ def extract_session_data(records: list[dict]) -> dict:
         "skills": [],
         "messages": 0,
         "user_messages": [],
+        "conversation": [],
         "first_timestamp": None,
         "last_timestamp": None,
         "files_created": [],
@@ -159,30 +160,43 @@ def extract_session_data(records: list[dict]) -> dict:
             if summary:
                 data["summary"] = summary
 
-        if record_type == "user":
+        if record_type == "user" and not record.get("isMeta"):
             data["messages"] += 1
             msg = record.get("message", {})
             content = msg.get("content", "")
+            text = ""
             if content and isinstance(content, str):
-                if not record.get("isMeta"):
-                    data["user_messages"].append(content)
+                text = content
             elif isinstance(content, list):
+                parts = []
                 for item in content:
                     if isinstance(item, dict) and item.get("type") == "text":
-                        text = item.get("text", "")
-                        if text and not record.get("isMeta"):
-                            data["user_messages"].append(text)
+                        t = item.get("text", "")
+                        if t:
+                            parts.append(t)
+                text = "\n".join(parts)
+            if text:
+                data["user_messages"].append(text)
+                data["conversation"].append({"role": "user", "content": text})
 
         if record_type == "assistant":
             msg = record.get("message", {})
             contents = msg.get("content", [])
             if isinstance(contents, list):
+                text_parts = []
                 for item in contents:
-                    if isinstance(item, dict) and item.get("name") == "Skill":
-                        skill_input = item.get("input", {})
-                        skill_name = skill_input.get("skill", "")
-                        if skill_name and skill_name not in data["skills"]:
-                            data["skills"].append(skill_name)
+                    if isinstance(item, dict):
+                        if item.get("type") == "text":
+                            t = item.get("text", "")
+                            if t:
+                                text_parts.append(t)
+                        if item.get("name") == "Skill":
+                            skill_input = item.get("input", {})
+                            skill_name = skill_input.get("skill", "")
+                            if skill_name and skill_name not in data["skills"]:
+                                data["skills"].append(skill_name)
+                if text_parts:
+                    data["conversation"].append({"role": "assistant", "content": "\n".join(text_parts)})
 
     if not data["title"] and data["user_messages"]:
         first_msg = data["user_messages"][0]
@@ -398,11 +412,20 @@ def generate_markdown(data: dict, session_id: str, existing_fm: dict | None = No
     # Conversation
     lines.append("## Conversation")
     lines.append("")
-    for msg in data["user_messages"]:
-        lines.append("### User")
-        lines.append("")
-        lines.append(msg)
-        lines.append("")
+    conversation = data.get("conversation", [])
+    if conversation:
+        for turn in conversation:
+            role_label = "User" if turn["role"] == "user" else "Claude"
+            lines.append(f"### {role_label}")
+            lines.append("")
+            lines.append(turn["content"])
+            lines.append("")
+    else:
+        for msg in data["user_messages"]:
+            lines.append("### User")
+            lines.append("")
+            lines.append(msg)
+            lines.append("")
 
     return "\n".join(lines)
 

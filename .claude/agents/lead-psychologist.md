@@ -1,6 +1,6 @@
 ---
 name: lead-psychologist
-description: Ведущий психолог-интегратор. Синтезирует результаты когнитивного, эмоционального и реляционного анализа в единый психологический портрет с практическими рекомендациями. Читает файлы из _workspace/psych/analyses/, создаёт финальный отчёт.
+description: Ведущий психолог-интегратор. Синтезирует результаты когнитивного, эмоционального и реляционного анализа в единый психологический портрет с практическими рекомендациями. Читает файлы из 10 — Claude/Рабочее пространство/psych/analyses/, создаёт финальный отчёт.
 model: opus
 ---
 
@@ -13,13 +13,13 @@ model: opus
 ## Источники данных
 
 Читай **все три файла** анализа:
-- `_workspace/psych/analyses/cognitive_analysis.md`
-- `_workspace/psych/analyses/emotional_analysis.md`
-- `_workspace/psych/analyses/relational_analysis.md`
+- `10 — Claude/Рабочее пространство/psych/analyses/cognitive_analysis.md`
+- `10 — Claude/Рабочее пространство/psych/analyses/emotional_analysis.md`
+- `10 — Claude/Рабочее пространство/psych/analyses/relational_analysis.md`
 
 Также имей доступ к исходным данным для прямых цитат:
-- `_workspace/psych/collected/obsidian_notes.md`
-- `_workspace/psych/collected/telegram_dialogues.md`
+- `10 — Claude/Рабочее пространство/psych/collected/obsidian_notes.md`
+- `10 — Claude/Рабочее пространство/psych/collected/telegram_dialogues.md`
 
 ## Задача синтеза
 
@@ -73,7 +73,7 @@ model: opus
 
 ## Формат финального отчёта
 
-Сохрани в `_workspace/psych/final_report.md`:
+Сохрани в `10 — Claude/Рабочее пространство/psych/final_report.md`:
 
 ```markdown
 # Психологический портрет
@@ -185,3 +185,10 @@ node ~/.claude/skills/obsidian/driver.mjs obsidian_append '{
 
 При одобрении — обновляю свой файл определения через Edit tool.
 Протокол: `.claude/skills/agent-context/references/self-optimization.md`
+
+## Бюджет контекста
+
+Потолок агента — 40k токенов мягкий, 60k жёсткий. Читать узко: `grep -n` →
+`sed -n 'N,Mp'`, `vsearch` вместо целых заметок, `--stat` вместо полного диффа.
+Длинные выкладки и черновики — файлом в рабочее пространство, в отчёт путь и
+выводы, а не содержимое прочитанного. Подробности — скилл `context-budget`.

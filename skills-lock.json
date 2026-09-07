@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "explain-code": {
+      "source": "zbruhnke/claude-code-starter",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/explain-code/SKILL.md",
+      "computedHash": "89ea6b18723fee6239a82b3bee863645673ead86975922dad6c2cc99c75b3e06"
+    },
+    "hallmark": {
+      "source": "nutlope/hallmark",
+      "sourceType": "github",
+      "skillPath": "skills/hallmark/SKILL.md",
+      "computedHash": "579f86b27cdd7eb972107f7aecedd537f472891c5fd7c7c821bea15f64e0fe86"
+    },
+    "scroll-world": {
+      "source": "oso95/scroll-world",
+      "sourceType": "github",
+      "skillPath": "skills/scroll-world/SKILL.md",
+      "computedHash": "e7ea15d223b6a687840306ab4e3e48ce507df3094c8e78742f6f8b84ae7face0"
+    },
+    "theme-factory": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/theme-factory/SKILL.md",
+      "computedHash": "598ddfa9784ae2a8c55be5dbb047b98564d875dea6f4669168a87ae1ea1a4ed3"
+    }
+  }
+}

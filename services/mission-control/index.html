@@ -1,0 +1,2305 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personal OS · Mission Control</title>
+<style>
+  :root{
+    /* ════ общие токены (не зависят от темы) ════ */
+    --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --fs-pulse:15px; --fs-h:13px; --fs-base:13px; --fs-data:12.5px; --fs-sm:11.5px; --fs-xs:10.5px;
+    --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px;
+    --r-1:3px; --r-2:6px; --r-3:8px; --r-pop:10px;
+    --bd:1px solid var(--line); --bd-strong:1px solid var(--line-strong);
+    --shadow-pop:0 8px 28px rgba(0,0,0,.6); --ring:0 0 0 2px var(--accent-ring);
+    --t-fast:120ms; --t-mid:200ms; --t-slow:480ms; --ease:cubic-bezier(.2,.7,.3,1);
+
+    /* ════ ПАЛИТРА · DARK (дефолт) — нейтральный тёмный, спокойный синий акцент ════ */
+    --bg:#0e0f12; --surface:#16181d; --surface-2:#1c1f26; --surface-3:#252932; --sunken:#0a0b0e;
+    --line:#262a31; --line-2:#1d2027; --line-strong:#363b45; --faint:#4b525d;
+    --txt:#e6e8ec; --txt-2:#a2a8b4; --dim:#7c828e;
+    --ok:#56b870;       --ok-bg:rgba(86,184,112,.13);
+    --degraded:#e0a93a; --degraded-bg:rgba(224,169,58,.14);
+    --err:#ef5350;      --err-bg:rgba(239,83,80,.13);  --err-bd:#5c2522; --err-ink:#ff9b97;
+    --warn:#e0b13a;     --warn-bg:rgba(224,177,58,.14);
+    --idle:#7c828e;     --idle-bg:rgba(124,130,142,.10);
+    --info:#5aa9e6;     --info-bg:rgba(90,169,230,.13);
+    --accent:#5b9bd5;   --accent-bg:rgba(91,155,213,.13); --accent-ring:rgba(91,155,213,.5);
+    --glow:rgba(91,155,213,.32); --scan:rgba(255,255,255,.013);
+    --grid:rgba(91,155,213,.038); --bracket:var(--accent);
+  }
+  /* ════ Tactical · янтарь (ЦУП, sci-fi) ════ */
+  [data-theme="tactical"]{
+    --bg:#0c0d11; --surface:#15171d; --surface-2:#1b1e26; --surface-3:#23272f; --sunken:#070809;
+    --line:#272b33; --line-2:#1e222a; --line-strong:#3b424d; --faint:#4d5562;
+    --txt:#ece6d6; --txt-2:#a8a190; --dim:#8c8573;
+    --ok:#7fb53e;       --ok-bg:rgba(127,181,62,.13);
+    --degraded:#e0902a; --degraded-bg:rgba(224,144,42,.14);
+    --err:#ff5b4d;      --err-bg:rgba(255,91,77,.13);  --err-bd:#5c2521; --err-ink:#ff9f96;
+    --warn:#e0b13a;     --warn-bg:rgba(224,177,58,.14);
+    --idle:#8c8573;     --idle-bg:rgba(140,133,115,.10);
+    --info:#5fb0d8;     --info-bg:rgba(95,176,216,.13);
+    --accent:#f0a830;   --accent-bg:rgba(240,168,48,.13); --accent-ring:rgba(240,168,48,.5);
+    --glow:rgba(240,168,48,.45); --scan:rgba(255,255,255,.018);
+    --grid:rgba(240,168,48,.045); --bracket:var(--accent);
+  }
+  /* ════ HUD-циан (кокпит) ════ */
+  [data-theme="hud"]{
+    --bg:#070b10; --surface:#0e151d; --surface-2:#132029; --surface-3:#1a2a35; --sunken:#04080c;
+    --line:#1c2a35; --line-2:#152029; --line-strong:#2e4451; --faint:#41606f;
+    --txt:#e6f3f4; --txt-2:#90b1b9; --dim:#7796a0;
+    --ok:#3fd9a0; --ok-bg:rgba(63,217,160,.13);
+    --degraded:#e0b13a; --degraded-bg:rgba(224,177,58,.14);
+    --err:#ff5b6e; --err-bg:rgba(255,91,110,.13); --err-bd:#5b2230; --err-ink:#ff9aab;
+    --warn:#e0b13a; --warn-bg:rgba(224,177,58,.14);
+    --idle:#7796a0; --idle-bg:rgba(119,150,160,.10);
+    --info:#58a6ff; --info-bg:rgba(88,166,255,.13);
+    --accent:#36f0d0; --accent-bg:rgba(54,240,208,.12); --accent-ring:rgba(54,240,208,.5);
+    --glow:rgba(54,240,208,.5); --scan:rgba(255,255,255,.02);
+    --grid:rgba(54,240,208,.05); --bracket:var(--accent);
+  }
+  /* ════ Synthwave-неон ════ */
+  [data-theme="synth"]{
+    --bg:#0d0a18; --surface:#161228; --surface-2:#1d1733; --surface-3:#261d42; --sunken:#08060f;
+    --line:#2a2147; --line-2:#1f1838; --line-strong:#43355f; --faint:#5b4a7e;
+    --txt:#f1e9ff; --txt-2:#b6a6d6; --dim:#9c8cc0;
+    --ok:#46e8a0; --ok-bg:rgba(70,232,160,.13);
+    --degraded:#ffb84d; --degraded-bg:rgba(255,184,77,.14);
+    --err:#ff5577; --err-bg:rgba(255,85,119,.14); --err-bd:#5b2238; --err-ink:#ff9ab2;
+    --warn:#ffb84d; --warn-bg:rgba(255,184,77,.14);
+    --idle:#9c8cc0; --idle-bg:rgba(156,140,192,.12);
+    --info:#4fd6ff; --info-bg:rgba(79,214,255,.13);
+    --accent:#ff5cc8; --accent-bg:rgba(255,92,200,.13); --accent-ring:rgba(255,92,200,.5);
+    --glow:rgba(255,92,200,.5); --scan:rgba(255,255,255,.022);
+    --grid:rgba(255,92,200,.05); --bracket:var(--accent);
+  }
+  /* ════ Matrix-фосфор ════ */
+  [data-theme="matrix"]{
+    --bg:#040806; --surface:#0a120c; --surface-2:#0f1a11; --surface-3:#142217; --sunken:#020503;
+    --line:#163018; --line-2:#0f2212; --line-strong:#26482a; --faint:#356b3b;
+    --txt:#c8e6cc; --txt-2:#74a87c; --dim:#5f8f66;
+    --ok:#36f06a; --ok-bg:rgba(54,240,106,.12);
+    --degraded:#d8c63a; --degraded-bg:rgba(216,198,58,.14);
+    --err:#ff5b4d; --err-bg:rgba(255,91,77,.14); --err-bd:#5c2521; --err-ink:#ff9f96;
+    --warn:#d8c63a; --warn-bg:rgba(216,198,58,.14);
+    --idle:#5f8f66; --idle-bg:rgba(95,143,102,.12);
+    --info:#4fd6a0; --info-bg:rgba(79,214,160,.13);
+    --accent:#36f06a; --accent-bg:rgba(54,240,106,.12); --accent-ring:rgba(54,240,106,.5);
+    --glow:rgba(54,240,106,.5); --scan:rgba(54,240,106,.022);
+    --grid:rgba(54,240,106,.05); --bracket:var(--accent);
+  }
+  /* ════ Light · чистый белый (дневной) ════ */
+  [data-theme="light"]{
+    --bg:#f4f5f7; --surface:#ffffff; --surface-2:#f7f8fa; --surface-3:#eef0f3; --sunken:#e9ebee;
+    --line:#e2e5ea; --line-2:#edeff2; --line-strong:#cbd0d8; --faint:#aab0ba;
+    --txt:#1c1f24; --txt-2:#525862; --dim:#787e89;
+    --ok:#2e8b4f; --ok-bg:rgba(46,139,79,.10);
+    --degraded:#b07d12; --degraded-bg:rgba(176,125,18,.12);
+    --err:#d23b32; --err-bg:rgba(210,59,50,.10); --err-bd:#e6b3af; --err-ink:#9a2620;
+    --warn:#b07d12; --warn-bg:rgba(176,125,18,.12);
+    --idle:#787e89; --idle-bg:rgba(120,126,137,.10);
+    --info:#2b6cb0; --info-bg:rgba(43,108,176,.10);
+    --accent:#2f6fd0; --accent-bg:rgba(47,111,208,.10); --accent-ring:rgba(47,111,208,.4);
+    --glow:rgba(47,111,208,.16); --scan:rgba(0,0,0,.01);
+    --grid:rgba(47,111,208,.05); --bracket:var(--accent);
+    --shadow-pop:0 8px 28px rgba(40,50,70,.18);
+  }
+  /* ════ Glass · глазоморфизм (редакторский борд: кобальт + матовое стекло) ════ */
+  [data-theme="glass"]{
+    --display:"Space Grotesk","Archivo","Neue Haas Grotesk Display",var(--ui);
+    --serif:"Fraunces","PT Serif",Georgia,serif;
+    /* фон почти чёрный по борду; поверхности — полупрозрачное стекло */
+    --bg:#0f1012; --sunken:rgba(9,10,12,.55);
+    --surface:rgba(23,24,27,.52); --surface-2:rgba(32,34,38,.46); --surface-3:rgba(46,49,56,.55);
+    --line:rgba(255,255,255,.085); --line-2:rgba(255,255,255,.05); --line-strong:rgba(255,255,255,.17); --faint:#5b626e;
+    --txt:#f4f3f0; --txt-2:#b7bbc3; --dim:#8b8c90;
+    --ok:#4fd08a;       --ok-bg:rgba(79,208,138,.14);
+    --degraded:#f5b53a; --degraded-bg:rgba(245,181,58,.16);
+    --err:#ff6a5e;      --err-bg:rgba(255,106,94,.15); --err-bd:#5c2a26; --err-ink:#ffb0a9;
+    --warn:#f5c14a;     --warn-bg:rgba(245,193,74,.15);
+    --idle:#8b8c90;     --idle-bg:rgba(139,140,144,.12);
+    --info:#5aa0ff;     --info-bg:rgba(90,160,255,.14);
+    --accent:#2b5cff;   --accent-bg:rgba(43,92,255,.16); --accent-ring:rgba(43,92,255,.55);
+    --glow:rgba(43,92,255,.5); --scan:rgba(255,255,255,.008);
+    --grid:rgba(255,255,255,.02); --bracket:var(--accent);
+    --shadow-pop:0 16px 48px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:var(--fs-base)/1.45 var(--ui);-webkit-font-smoothing:antialiased}
+  button{font:inherit;cursor:pointer}
+  .mono{font-family:var(--mono)}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:6px}
+
+  /* ════ sci-fi атмосфера: сетка + сканлайны фоном (Зона 0..N) ════ */
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      linear-gradient(var(--grid) 1px,transparent 1px) 0 0/100% 44px,
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/44px 100%;
+    -webkit-mask-image:radial-gradient(120% 90% at 50% -10%,#000 30%,transparent 100%);
+            mask-image:radial-gradient(120% 90% at 50% -10%,#000 30%,transparent 100%);opacity:.7}
+  body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,var(--scan) 0 1px,transparent 1px 3px)}
+  body.no-fx::before,body.no-fx::after{display:none}
+  .app{position:relative;z-index:1}
+
+  /* угловые скобки-прицел на панелях (диагональ) */
+  .bracket{position:relative}
+  .bracket::before,.bracket::after{content:"";position:absolute;width:9px;height:9px;
+    pointer-events:none;opacity:.55;transition:opacity var(--t-mid)}
+  .bracket::before{top:-1px;left:-1px;border-top:1.5px solid var(--bracket);border-left:1.5px solid var(--bracket)}
+  .bracket::after{bottom:-1px;right:-1px;border-bottom:1.5px solid var(--bracket);border-right:1.5px solid var(--bracket)}
+  .bracket:hover::before,.bracket:hover::after{opacity:1}
+
+  /* свечение акцентов */
+  .glow{text-shadow:0 0 10px var(--glow)}
+
+  /* корпусные скобки на пустых углах плиток (kpi/acard/calm) */
+  .kpi,.acard,.calm{position:relative}
+  .kpi::before,.kpi::after,.acard::before,.acard::after,.calm::before,.calm::after{
+    content:"";position:absolute;width:7px;height:7px;pointer-events:none;opacity:.5;z-index:2}
+  .kpi::before,.acard::before,.calm::before{top:-1px;right:-1px;
+    border-top:1.5px solid var(--bracket);border-right:1.5px solid var(--bracket)}
+  .kpi::after,.acard::after,.calm::after{bottom:-1px;left:-1px;
+    border-bottom:1.5px solid var(--bracket);border-right:0;
+    border-left:1.5px solid var(--bracket)}
+
+  /* инструментальная шапка панели */
+  .panel>.h{position:relative;text-transform:uppercase;letter-spacing:.6px;
+    background:linear-gradient(180deg,var(--surface-2),transparent)}
+  .panel>.h .t{font-family:var(--mono);font-size:12px;color:var(--txt)}
+  .panel>.h::before{content:"";width:4px;height:13px;background:var(--accent);
+    border-radius:1px;box-shadow:0 0 8px var(--glow);flex:none}
+  .panel>.h::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;
+    background:linear-gradient(90deg,var(--accent),transparent 38%)}
+
+  /* свечение бренда / активной навигации / LED-точек */
+  .brand .mark{box-shadow:0 0 14px var(--glow);text-shadow:0 0 8px var(--glow)}
+  .nav a.on{box-shadow:inset 0 0 0 1px var(--line-strong),-2px 0 12px -6px var(--glow)}
+  .nav a.on .ic{filter:drop-shadow(0 0 5px var(--glow))}
+  .dot.ok,.dot.live{filter:drop-shadow(0 0 4px currentColor)}
+  .pulse .verdict .vglyph{filter:drop-shadow(0 0 6px currentColor)}
+
+  /* ════ переключатель тем + fx + сворачивание (в подвале сайдбара) ════ */
+  .themebar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 8px 4px;margin-top:6px;border-top:var(--bd)}
+  .themebar .tlabel{font-size:9.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);width:100%;font-weight:600}
+  .swatch{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line-strong);cursor:pointer;
+    padding:0;position:relative;transition:transform var(--t-fast)}
+  .swatch:hover{transform:scale(1.12)}
+  .swatch.on{border-color:var(--txt);box-shadow:0 0 0 2px var(--accent-ring)}
+  .swatch[data-t="tactical"]{background:#f0a830} .swatch[data-t="hud"]{background:#36f0d0}
+  .swatch[data-t="synth"]{background:#ff5cc8} .swatch[data-t="matrix"]{background:#36f06a}
+  .swatch[data-t="light"]{background:linear-gradient(135deg,#f6f4ea 50%,#b8770e 50%)}
+  .fxbtn{margin-left:auto;font-family:var(--mono);font-size:var(--fs-xs);color:var(--dim);
+    background:transparent;border:var(--bd);border-radius:var(--r-1);padding:2px 7px}
+  .fxbtn.on{color:var(--accent);border-color:var(--accent)}
+  .collapse-btn{margin-left:auto;width:26px;height:24px;border:var(--bd);border-radius:var(--r-1);
+    background:transparent;color:var(--txt-2);display:inline-flex;align-items:center;justify-content:center;flex:none}
+  .collapse-btn:hover{color:var(--txt);border-color:var(--line-strong)}
+  .collapse-btn .ic{width:14px;height:14px;transition:transform var(--t-mid)}
+
+  /* ручное сворачивание сайдбара (независимо от media-query) */
+  .app.nav-collapsed{grid-template-columns:64px 1fr}
+  .app.nav-collapsed .side .tx,.app.nav-collapsed .side .lbl,.app.nav-collapsed .side .brand-sub,
+  .app.nav-collapsed .side-foot .full,.app.nav-collapsed .nav a .end,
+  .app.nav-collapsed .themebar .tlabel,.app.nav-collapsed .themebar .fxbtn,
+  .app.nav-collapsed .side-foot .clock{display:none}
+  .app.nav-collapsed .brand{justify-content:center;padding-left:0;padding-right:0;gap:0}
+  .app.nav-collapsed .nav a{justify-content:center;padding-left:0;padding-right:0}
+  .app.nav-collapsed .themebar{justify-content:center;padding-left:0;padding-right:0}
+  .app.nav-collapsed .collapse-btn .ic{transform:rotate(180deg)}
+  .app.nav-collapsed .side-foot .fr{justify-content:center}
+  .app.nav-collapsed .side-foot .pid{display:none}
+  .app.nav-collapsed .side-foot{padding-left:6px;padding-right:6px}
+  .app.nav-collapsed .side-foot .btn{padding-left:0;padding-right:0}
+
+  /* ════ Граф · полноэкранная сцена с наложенной телеметрией ════ */
+  #content.wide{max-width:none;padding:0}
+  .gstage{position:relative;width:100%;height:calc(100vh - 96px);background:var(--sunken);
+    overflow:hidden;border-top:var(--bd)}
+  .gstage:fullscreen{height:100vh;width:100vw}
+  .gstage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+  .gstage .gph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--txt-2)}
+  .goverlay{position:absolute;top:14px;right:14px;z-index:3;width:248px;
+    background:color-mix(in srgb,var(--surface) 86%,transparent);backdrop-filter:blur(8px);
+    border:var(--bd-strong);border-radius:var(--r-3);box-shadow:var(--shadow-pop);overflow:hidden}
+  .goverlay .oh{display:flex;align-items:center;gap:7px;padding:8px 11px;border-bottom:1px solid var(--line-2);
+    font-family:var(--mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.6px;color:var(--accent)}
+  .goverlay .oh .sp{flex:1} .goverlay .ob{padding:6px 11px 10px;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .goverlay.min .ob{display:none}
+  .ometric{min-width:0}.ometric .k{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim)}
+  .ometric .v{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--txt);letter-spacing:-.3px}
+  .ometric .v small{font-size:10px;color:var(--dim)}
+  .gctrls{position:absolute;top:14px;left:14px;z-index:3;display:flex;gap:6px;flex-wrap:wrap;max-width:60%}
+  .ghint{margin-left:auto}
+  .icon-btn{background:color-mix(in srgb,var(--surface) 86%,transparent);backdrop-filter:blur(8px)}
+
+  /* 1 ── layout ── */
+  .app{display:grid;grid-template-columns:248px 1fr;height:100vh}
+  @media(max-width:1100px){.app{grid-template-columns:60px 1fr}
+    .side .tx,.side .lbl,.side .brand-sub,.side-foot .full,
+    .themebar .tlabel,.themebar .fxbtn,.nav a .end{display:none}
+    .brand{justify-content:center;gap:0} .nav a{justify-content:center}
+    .themebar{justify-content:center;padding-left:0;padding-right:0}}
+
+  /* ── sidebar ── */
+  .side{background:var(--surface);border-right:var(--bd);display:flex;flex-direction:column;padding:var(--sp-3) var(--sp-2)}
+  .brand{display:flex;align-items:center;gap:var(--sp-2);padding:6px var(--sp-2) var(--sp-4)}
+  .brand .mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:26px;
+    border:var(--bd-strong);border-radius:var(--r-2);font-family:var(--mono);font-weight:700;font-size:12px;
+    color:var(--accent);letter-spacing:.5px;flex:none}
+  .brand b{font-size:13px;font-weight:650;letter-spacing:-.2px;display:block}
+  .brand .brand-sub{font-size:10.5px;color:var(--dim)}
+  .nav{display:flex;flex-direction:column;gap:2px;overflow:auto;flex:1}
+  .nav .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);padding:14px 10px 5px;font-weight:600}
+  .nav a{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:var(--r-2);color:var(--txt-2);
+    cursor:pointer;font-size:13px;font-weight:500;text-decoration:none;border-left:2px solid transparent}
+  .nav a:hover{background:var(--surface-2);color:var(--txt)}
+  .nav a.on{background:var(--surface-3);color:var(--txt);font-weight:600;border-left-color:var(--accent)}
+  .nav a .ic{width:16px;height:16px;flex:none;opacity:.9}
+  .nav a .tx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .nav a .end{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .nav-badge{font-family:var(--mono);font-size:var(--fs-xs);font-weight:700;color:var(--bg);
+    background:var(--degraded);border-radius:var(--r-1);padding:1px 5px}
+  .nav-badge.err{background:var(--err)}
+  .nav-live{font-family:var(--mono);font-size:var(--fs-xs);color:var(--accent)}
+  .side-foot{border-top:var(--bd);padding:10px 10px 2px;margin-top:8px;font-size:var(--fs-sm);color:var(--txt-2)}
+  .side-foot .fr{display:flex;align-items:center;gap:7px;margin-top:5px}
+  .side-foot .clock{font-family:var(--mono);color:var(--dim);margin-left:auto}
+  .side-foot .pid{font-family:var(--mono);color:var(--txt);font-weight:600}
+
+  /* ── status dot (форма-дубль) ── */
+  .dot{font-family:var(--mono);font-size:11px;line-height:1;flex:none}
+  .dot.ok{color:var(--ok)} .dot.degraded{color:var(--degraded)} .dot.err{color:var(--err)}
+  .dot.idle{color:var(--idle)} .dot.wait{color:var(--info)} .dot.warn{color:var(--warn)}
+  .dot.unknown{color:var(--dim)}
+  .dot.live{animation:breathe var(--t-slow) ease-in-out infinite alternate}
+  @keyframes breathe{from{opacity:.5}to{opacity:1}}
+
+  /* ── chip ── */
+  .chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:var(--fs-xs);
+    font-weight:600;padding:2px 7px;border-radius:var(--r-1);white-space:nowrap}
+  .chip.ok{color:var(--ok);background:var(--ok-bg)} .chip.degraded{color:var(--degraded);background:var(--degraded-bg)}
+  .chip.err{color:var(--err);background:var(--err-bg)} .chip.idle{color:var(--idle);background:var(--idle-bg)}
+  .chip.warn{color:var(--warn);background:var(--warn-bg)} .chip.wait{color:var(--info);background:var(--info-bg)}
+  .chip.unknown{color:var(--dim);background:var(--idle-bg)}
+
+  /* ── main ── */
+  .main{overflow:auto;display:flex;flex-direction:column}
+  /* 2 ── pulse (Зона 0) ── */
+  .pulse{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:var(--sp-4);
+    height:48px;padding:0 var(--sp-5);background:var(--surface);border-bottom:var(--bd);
+    border-top:3px solid var(--idle)}                 /* P4: цветная шторка по overall */
+  .pulse.ok{border-top-color:var(--ok)}
+  .pulse.degraded{border-top-color:var(--degraded)}
+  .pulse.err{border-top-color:var(--err)}
+  .pulse .verdict{display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-pulse);font-weight:600}
+  .pulse .verdict .vglyph{font-family:var(--mono);font-size:19px;line-height:1} /* P4: крупный глиф */
+  .pulse.ok .verdict{color:var(--ok)} .pulse.degraded .verdict{color:var(--degraded)} .pulse.err .verdict{color:var(--err)}
+  .pulse .att{font-family:var(--mono);font-size:var(--fs-data);color:var(--degraded)}
+  .pulse .att.err{color:var(--err)}
+  .pulse .up{font-family:var(--mono);font-size:var(--fs-data);color:var(--txt-2)}
+  .pulse .sp{flex:1}
+  .pulse .clock{font-family:var(--mono);color:var(--txt-2);font-size:var(--fs-data)}
+
+  .topbar{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-4) var(--sp-5) var(--sp-2)}
+  .topbar h1{font-size:16px;margin:0;font-weight:650;letter-spacing:-.2px}
+  .topbar .crumb{font-size:var(--fs-sm);color:var(--dim);font-family:var(--mono)}
+  .topbar .sp{flex:1}
+  .content{padding:var(--sp-2) var(--sp-5) var(--sp-6);max-width:1240px}
+  .svccap{display:flex;align-items:flex-start;gap:8px;background:var(--surface-2);border:var(--bd);
+    border-left:2px solid var(--accent);border-radius:var(--r-2);padding:9px 12px;margin-bottom:var(--sp-4);
+    color:var(--txt-2);font-size:var(--fs-sm);line-height:1.5}
+  .svccap .ic{width:14px;height:14px;flex:none;margin-top:2px;color:var(--accent);opacity:.9}
+
+  /* 3 ── panel / row ── */
+  .panel{background:var(--surface);border:var(--bd);border-radius:var(--r-3);margin-bottom:var(--sp-4);overflow:hidden}
+  .panel>.h{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-3);border-bottom:1px solid var(--line-2)}
+  .panel>.h .ic{width:15px;height:15px;flex:none;color:var(--accent)}
+  .panel>.h .t{font-size:var(--fs-h);font-weight:650} .panel>.h .sp{flex:1}
+  .panel>.h .badge{font-family:var(--mono);font-size:var(--fs-sm);color:var(--dim)}
+  .grid2{display:grid;grid-template-columns:1.6fr 1fr;gap:var(--sp-4)}
+  @media(max-width:980px){.grid2{grid-template-columns:1fr}}
+
+  .row{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-2) var(--sp-3);border-bottom:1px solid var(--line-2)}
+  .row:last-child{border-bottom:0} .row:hover{background:var(--surface-2)}
+  .row .meta{min-width:0;flex:1}
+  .row .name{display:flex;align-items:center;gap:7px;font-size:var(--fs-base)}
+  .row .id{font-family:var(--mono);font-weight:600;font-size:var(--fs-data)}
+  .row .desc{color:var(--txt-2);font-size:var(--fs-sm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+  .row .when{font-family:var(--mono);font-size:var(--fs-xs);color:var(--dim);text-align:right;white-space:nowrap;line-height:1.5}
+  .row .when b{color:var(--txt-2);font-weight:600}
+  .row.alert{border-left:2px solid var(--err)} .row.warn{border-left:2px solid var(--warn)}
+  .row.off{opacity:.6}
+  .acts{display:flex;gap:var(--sp-1);flex:none;flex-wrap:wrap;justify-content:flex-end}
+
+  /* svc compact strip ── */
+  .svcrow{display:flex;flex-wrap:wrap;gap:var(--sp-3);align-items:center;
+    padding:var(--sp-3);background:var(--surface);border:var(--bd);border-radius:var(--r-3);margin-bottom:var(--sp-4)}
+  .svcrow .lab{font-family:var(--mono);font-size:var(--fs-sm);color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+  .svcchip{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-sm);cursor:pointer;
+    padding:3px 8px;border-radius:var(--r-1)} .svcchip:hover{background:var(--surface-2)}
+  .svcchip .id{font-family:var(--mono);font-weight:600}
+  .svcchip .ut{font-family:var(--mono);font-size:var(--fs-xs);color:var(--dim)}
+
+  /* 5 ── kpi ── */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--sp-2);margin-bottom:var(--sp-4)}
+  .kpi{background:var(--surface-2);border:var(--bd);border-radius:var(--r-2);padding:var(--sp-3);min-width:0}
+  .kpi .k{font-size:var(--fs-xs);color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+  .kpi .v{font-family:var(--mono);font-size:22px;font-weight:600;margin-top:4px;letter-spacing:-.3px}
+  .kpi .v small{font-size:12px;color:var(--dim);font-weight:500}
+  .kpi .v.err{color:var(--err)} .kpi .v.ok{color:var(--ok)} .kpi .v.warn{color:var(--warn)}
+  .kpi .ctx{font-family:var(--mono);font-size:var(--fs-xs);margin-top:3px;color:var(--txt-2)}
+  .kpi.attn{border-left:2px solid var(--warn)}
+
+  /* 6 ── attention zone ── */
+  .attention{margin-bottom:var(--sp-4)}
+  .attention>.h{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2) 2px var(--sp-3);
+    font-size:var(--fs-h);font-weight:650;color:var(--txt);text-transform:uppercase;letter-spacing:.5px}
+  .attention>.h .ic{width:16px;height:16px;color:var(--degraded)}
+  .attention>.h .n{font-family:var(--mono);color:var(--degraded)}
+  .attention>.h .n.err{color:var(--err)}
+  .acard{background:var(--surface-2);border:var(--bd);border-radius:var(--r-2);
+    border-left:2px solid var(--warn);padding:var(--sp-3);margin-bottom:var(--sp-2)}
+  .acard.err{border-left-color:var(--err)} .acard.info{border-left-color:var(--info)}
+  .acard .top{display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-data);flex-wrap:wrap}
+  .acard .top .id{font-family:var(--mono);font-weight:600;color:var(--txt)}
+  .acard .reason{color:var(--txt);font-size:var(--fs-data);margin:6px 0 4px;font-family:var(--mono)}
+  .acard .ahint{display:flex;align-items:flex-start;gap:6px;color:var(--txt-2);font-size:var(--fs-sm);
+    line-height:1.5;margin:0 0 var(--sp-2)}
+  .acard .ahint .ic{width:13px;height:13px;flex:none;margin-top:2px;color:var(--dim);opacity:.8}
+  .acard .acts{justify-content:flex-start}
+  .calm{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-3);background:var(--surface);border:var(--bd);
+    border-left:2px solid var(--ok);border-radius:var(--r-3);color:var(--ok);font-size:var(--fs-base);margin-bottom:var(--sp-4)}
+  .calm .ic{width:15px;height:15px}
+
+  /* 7 ── buttons ── */
+  .btn{display:inline-flex;align-items:center;gap:5px;border:var(--bd);background:transparent;color:var(--txt-2);
+    padding:6px 10px;border-radius:var(--r-2);font:600 var(--fs-sm)/1 var(--ui);cursor:pointer;transition:var(--t-fast)}
+  .btn:hover{border-color:var(--line-strong);color:var(--txt);background:var(--surface-2)}
+  .btn:active{transform:translateY(1px)} .btn:disabled{opacity:.4;cursor:default}
+  .btn.sm{padding:6px 10px;font-size:var(--fs-sm);min-height:28px}
+  .btn.primary{color:var(--accent);border-color:var(--accent)} .btn.primary:hover{background:var(--accent-bg)}
+  .btn.danger{color:var(--err)} .btn.danger:hover{border-color:var(--err);background:var(--err-bg)}
+  .btn .ic{width:13px;height:13px}
+  .btn:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible,summary:focus-visible,
+  .svcchip:focus-visible,.nav a:focus-visible{outline:none;box-shadow:var(--ring);border-color:var(--accent)}
+
+  /* 8 ── feed / errpre / logbox / empty ── */
+  .feed{overflow:auto;max-height:460px}
+  .ev{display:flex;gap:var(--sp-2);align-items:baseline;
+    padding:6px var(--sp-3);border-bottom:1px solid var(--line-2);font-family:var(--mono);font-size:var(--fs-xs)}
+  .ev:last-child{border-bottom:0}
+  .ev .t{color:var(--dim);white-space:nowrap} .ev .j{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ev.err{border-left:2px solid var(--err)}
+  .errpre{background:var(--sunken);color:var(--err-ink);border:1px solid var(--err-bd);border-left:2px solid var(--err);
+    border-radius:var(--r-2);padding:var(--sp-2) var(--sp-3);font-family:var(--mono);font-size:var(--fs-xs);
+    line-height:1.55;white-space:pre-wrap;max-height:180px;overflow:auto;margin-top:var(--sp-2)}
+  .logbox{background:var(--sunken);color:var(--txt);font-family:var(--mono);font-size:var(--fs-xs);
+    line-height:1.55;padding:var(--sp-3);max-height:320px;overflow:auto;white-space:pre-wrap}
+  details>summary{cursor:pointer;padding:var(--sp-3);font-size:var(--fs-base);font-weight:600;color:var(--txt-2);list-style:none}
+  details>summary::-webkit-details-marker{display:none}
+  details>summary::before{content:'▸ ';color:var(--dim)} details[open]>summary::before{content:'▾ '}
+  .empty{padding:var(--sp-6) var(--sp-4);text-align:center;color:var(--txt-2);font-size:var(--fs-sm);line-height:1.6}
+  .empty .act-line{margin-top:var(--sp-3)}
+
+  /* flash on change (T14/§7) */
+  .flash{animation:flash var(--t-mid) var(--ease)}
+  @keyframes flash{from{background:var(--surface-3)}to{background:transparent}}
+
+  /* ── claude code ── */
+  .cc{display:grid;grid-template-columns:270px 1fr;gap:var(--sp-4);height:calc(100vh - 150px);min-height:460px}
+  @media(max-width:880px){.cc{grid-template-columns:1fr;height:auto}}
+  .cc-side{display:flex;flex-direction:column;overflow:hidden}
+  .seg{display:flex;gap:3px;padding:6px;border-bottom:1px solid var(--line-2)}
+  .seg button{flex:1;border:0;background:transparent;color:var(--txt-2);padding:7px;border-radius:var(--r-2);font-size:var(--fs-sm);font-weight:600}
+  .seg button.on{background:var(--surface-3);color:var(--accent)}
+  .cc-list{overflow:auto;flex:1}
+  .sess{padding:10px var(--sp-3);border-bottom:1px solid var(--line-2);cursor:pointer}
+  .sess:hover{background:var(--surface-2)} .sess.on{background:var(--surface-3)}
+  .sess .st{font-family:var(--mono);color:var(--dim);font-size:var(--fs-xs);display:flex;gap:6px}
+  .sess .sx{font-size:var(--fs-sm);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+  .act{padding:9px var(--sp-3);border-bottom:1px solid var(--line-2);font-size:var(--fs-sm)}
+  .act .ah{display:flex;gap:7px;align-items:center;color:var(--dim);font-family:var(--mono);font-size:var(--fs-xs)}
+  .act .ap{margin-top:3px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .act .ar{margin-top:2px;color:var(--txt-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:var(--fs-xs)}
+
+  .cc-main{display:flex;flex-direction:column;overflow:hidden}
+  .transcript{flex:1;overflow:auto;padding:var(--sp-4);display:flex;flex-direction:column;gap:var(--sp-3);background:var(--sunken)}
+  .hint{color:var(--txt-2);font-size:var(--fs-base);line-height:1.6;max-width:560px;margin:auto;text-align:center}
+  .msg{max-width:84%}
+  .msg.u{align-self:flex-end}
+  .msg.u .b{background:var(--surface-3);border:var(--bd-strong);color:var(--txt);border-radius:var(--r-2);padding:9px 13px;font-size:var(--fs-base);white-space:pre-wrap}
+  .msg.a .b{background:var(--surface-2);border:var(--bd);color:var(--txt);border-radius:var(--r-2);padding:10px 14px;font-size:var(--fs-base);line-height:1.62;white-space:pre-wrap}
+  .tool{align-self:flex-start;font-family:var(--mono);font-size:var(--fs-xs);color:var(--accent);background:var(--surface-2);
+    border:var(--bd);border-radius:var(--r-2);padding:5px 10px;max-width:86%}
+  .tool .ti{color:var(--txt-2)} .tool.res{color:var(--txt-2)}
+  .final{align-self:center;font-family:var(--mono);font-size:var(--fs-xs);color:var(--dim);padding:4px}
+  .cerr{align-self:stretch;background:var(--sunken);border:1px solid var(--err-bd);color:var(--err-ink);border-radius:var(--r-2);padding:9px 13px;font-size:var(--fs-sm);white-space:pre-wrap;font-family:var(--mono)}
+  .typing{display:inline-block;width:7px;height:14px;background:var(--accent);animation:blink 1s steps(2) infinite;vertical-align:-2px;border-radius:1px}
+  @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+  .composer{border-top:1px solid var(--line-2);padding:var(--sp-3);background:var(--surface)}
+  .ctrls{display:flex;gap:var(--sp-2);margin-bottom:var(--sp-2);align-items:center}
+  .ctrls select{background:var(--surface-2);color:var(--txt);border:var(--bd);border-radius:var(--r-2);padding:6px 9px;font:inherit;font-size:var(--fs-sm);font-weight:500}
+  .ctrls .cwd{margin-left:auto;font-family:var(--mono);font-size:var(--fs-xs);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:230px}
+  .inrow{display:flex;gap:var(--sp-2);align-items:flex-end}
+  .inrow textarea{flex:1;background:var(--surface-2);color:var(--txt);border:var(--bd);border-radius:var(--r-2);padding:10px 12px;font:inherit;font-size:var(--fs-base);resize:vertical;max-height:200px}
+  .send{width:44px;height:42px;border-radius:var(--r-2);border:1px solid var(--accent);background:transparent;color:var(--accent);flex:none;display:inline-flex;align-items:center;justify-content:center}
+  .send:hover{background:var(--accent-bg)} .send:disabled{opacity:.4}
+  .send .ic{width:16px;height:16px}
+  .perm-full{color:var(--degraded)!important;border-color:var(--degraded)!important}
+  .perm-tag{font-family:var(--mono);font-size:var(--fs-xs);color:var(--degraded);margin-left:2px}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--surface-3);color:var(--txt);
+    border:var(--bd-strong);padding:10px 18px;border-radius:var(--r-2);font-size:var(--fs-base);opacity:0;transition:var(--t-mid);
+    pointer-events:none;z-index:30;box-shadow:var(--shadow-pop)}
+  .toast.on{opacity:1}
+  .modal{position:fixed;inset:0;background:rgba(3,6,10,.6);display:none;align-items:center;justify-content:center;z-index:25}
+  .modal.on{display:flex}
+  .modal .box{background:var(--surface);border:var(--bd-strong);border-radius:var(--r-pop);width:min(840px,92vw);max-height:82vh;display:flex;flex-direction:column;box-shadow:var(--shadow-pop)}
+  .modal .mh{padding:var(--sp-3) var(--sp-4);border-bottom:1px solid var(--line-2);font-weight:650;display:flex;font-family:var(--mono);font-size:var(--fs-data)}
+  .modal .x{margin-left:auto;cursor:pointer;color:var(--dim);background:none;border:0}
+
+  /* ── tooltip-подсказки (data-tip) — что значит метрика ── */
+  .tip{position:relative;cursor:help;border-bottom:1px dotted var(--faint)}
+  .tip::after{content:attr(data-tip);position:absolute;left:0;bottom:calc(100% + 6px);z-index:40;
+    width:max-content;max-width:260px;background:var(--surface-3);color:var(--txt);border:var(--bd-strong);
+    border-radius:var(--r-2);box-shadow:var(--shadow-pop);padding:7px 10px;font:500 var(--fs-sm)/1.45 var(--ui);
+    text-transform:none;letter-spacing:0;white-space:normal;opacity:0;visibility:hidden;
+    transform:translateY(3px);transition:opacity var(--t-fast),transform var(--t-fast);pointer-events:none}
+  .tip:hover::after,.tip:focus-visible::after{opacity:1;visibility:visible;transform:translateY(0)}
+  .kpi .k.tip,.ometric .k.tip{display:inline-block}
+
+  /* ── settings modal ── */
+  .set-grid{display:flex;flex-direction:column;gap:var(--sp-5);padding:var(--sp-4)}
+  .set-sec>.lbl{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.7px;color:var(--dim);
+    font-weight:600;margin-bottom:var(--sp-3)}
+  .themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:var(--sp-2)}
+  .theme-card{display:flex;align-items:center;gap:8px;padding:8px 10px;border:var(--bd);border-radius:var(--r-2);
+    background:var(--surface-2);cursor:pointer;text-align:left;color:var(--txt-2);transition:var(--t-fast)}
+  .theme-card:hover{border-color:var(--line-strong);color:var(--txt)}
+  .theme-card.on{border-color:var(--accent);color:var(--txt);box-shadow:inset 0 0 0 1px var(--accent)}
+  .theme-card .sw{width:22px;height:22px;border-radius:6px;border:1px solid var(--line-strong);flex:none}
+  .theme-card .nm{font-size:var(--fs-sm);font-weight:600}
+  .set-row{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-2) 0}
+  .set-row .sp{flex:1}
+  .toggle{width:42px;height:24px;border-radius:12px;border:var(--bd-strong);background:var(--surface-2);
+    position:relative;flex:none;transition:var(--t-fast)}
+  .toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+    background:var(--faint);transition:var(--t-fast)}
+  .toggle.on{background:var(--accent-bg);border-color:var(--accent)}
+  .toggle.on::after{left:21px;background:var(--accent)}
+
+  /* ── admin / builder forms ── */
+  .form{display:grid;gap:var(--sp-3);padding:var(--sp-4)}
+  .form .fld{display:flex;flex-direction:column;gap:4px}
+  .form .fld>label{font-size:var(--fs-sm);font-weight:600;color:var(--txt-2);display:flex;align-items:center;gap:6px}
+  .form .fld>label .hint-i{font-size:var(--fs-xs);color:var(--dim);font-weight:500}
+  .form input[type=text],.form input[type=number],.form textarea,.form select{
+    background:var(--surface-2);color:var(--txt);border:var(--bd);border-radius:var(--r-2);
+    padding:8px 11px;font:inherit;font-size:var(--fs-base);width:100%}
+  .form textarea{resize:vertical;min-height:60px;font-family:var(--mono);font-size:var(--fs-data)}
+  .form .two{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3)}
+  @media(max-width:680px){.form .two{grid-template-columns:1fr}}
+  .form .seg{border:var(--bd);border-radius:var(--r-2);padding:3px;width:max-content}
+  .form .seg button{border:0;background:transparent;color:var(--txt-2);padding:6px 14px;border-radius:var(--r-1);font-weight:600;font-size:var(--fs-sm)}
+  .form .seg button.on{background:var(--surface-3);color:var(--accent)}
+  .form .actions{display:flex;gap:var(--sp-2);align-items:center;margin-top:var(--sp-1)}
+  .barlist{display:flex;flex-direction:column;gap:6px;padding:var(--sp-3)}
+  .barrow{display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-sm)}
+  .barrow .nm{min-width:120px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt-2)}
+  .barrow .track{flex:1;height:8px;background:var(--surface-3);border-radius:4px;overflow:hidden}
+  .barrow .fill{height:100%;background:var(--accent);border-radius:4px}
+  .barrow .n{font-family:var(--mono);font-size:var(--fs-xs);color:var(--txt);min-width:34px;text-align:right}
+  .matlist{max-height:520px;overflow:auto}
+  .matrow{display:flex;gap:var(--sp-2);align-items:baseline;padding:7px var(--sp-3);border-bottom:1px solid var(--line-2)}
+  .matrow:last-child{border-bottom:0} .matrow:hover{background:var(--surface-2)}
+  .matrow .src{font-family:var(--mono);font-size:var(--fs-xs);color:var(--accent);min-width:120px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .matrow .ti{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt)}
+  .matrow .tm{font-family:var(--mono);font-size:var(--fs-xs);color:var(--dim);flex:none}
+  .matrow a{color:inherit;text-decoration:none} .matrow a:hover .ti{color:var(--accent)}
+  .pill{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:var(--fs-xs);
+    padding:1px 7px;border-radius:var(--r-1);background:var(--surface-3);color:var(--txt-2)}
+  .clickrow{cursor:pointer} .clickrow:hover{background:var(--surface-2)}
+
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+  /* ════════════════════════════════════════════════════════════════════
+     UX v2 · КОМАНДНЫЙ ПУЛЬТ — статус в одну полосу, задачи крупными
+     карточками, крупные всегда-видимые кнопки, лента сбоку/сворачив.
+     ════════════════════════════════════════════════════════════════════ */
+  /* одна тонкая полоса статуса (сервисы + метрики пульта + вход в Claude) */
+  .statusbar{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;
+    padding:9px 14px;background:var(--surface);border:var(--bd);border-radius:var(--r-3);margin-bottom:var(--sp-4)}
+  .statusbar .sb-left{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+  .statusbar .sb-right{display:flex;align-items:center;gap:10px 14px;margin-left:auto;flex-wrap:wrap}
+  .sb-lab{font-family:var(--mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.6px;color:var(--dim)}
+  .sdot{display:inline-flex;align-items:center;gap:5px;background:transparent;border:0;color:var(--txt-2);
+    font-size:var(--fs-sm);padding:3px 7px;border-radius:var(--r-1);cursor:pointer;transition:var(--t-fast)}
+  .sdot:hover{background:var(--surface-2);color:var(--txt)}
+  .sdot .dot{font-family:var(--mono);font-size:10px;filter:drop-shadow(0 0 4px currentColor)}
+  .sdot.ok .dot{color:var(--ok)} .sdot.warn .dot{color:var(--warn)} .sdot.err .dot{color:var(--err)}
+  .sb-ok{color:var(--ok);font-size:var(--fs-sm);font-weight:600}
+  .sb-alert{color:var(--degraded);font-size:var(--fs-sm);font-weight:700}
+  .sb-metric{font-family:var(--mono);font-size:var(--fs-sm);color:var(--txt-2);white-space:nowrap}
+  .sb-metric b{color:var(--txt);font-weight:700}
+  .sb-sep{width:1px;height:18px;background:var(--line-strong);flex:none}
+
+  /* операционная сетка: задачи (шире) · лента (уже, сворачивается) */
+  .opsgrid{display:grid;grid-template-columns:minmax(0,1.95fr) minmax(250px,.85fr);gap:var(--sp-4);align-items:start}
+  .opsgrid.nofeed{grid-template-columns:1fr}
+  .opsgrid.nofeed .feedcol{display:none}
+  @media(max-width:920px){.opsgrid{grid-template-columns:1fr}.opsgrid .feedcol{display:none}}
+  .opscol{min-width:0}
+  .colhead{display:flex;align-items:center;gap:10px;margin-bottom:var(--sp-3);padding:0 2px}
+  .colhead .t{font-size:var(--fs-h);font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--txt)}
+  .colhead .badge{font-family:var(--mono);font-size:var(--fs-xs);color:var(--dim)}
+  .feedtoggle{margin-left:auto;font-family:var(--mono);font-size:var(--fs-xs);color:var(--txt-2);
+    background:transparent;border:var(--bd);border-radius:var(--r-1);padding:3px 10px;cursor:pointer}
+  .feedtoggle:hover{color:var(--txt);border-color:var(--line-strong)}
+
+  /* крупная карточка крон-задачи */
+  .jobgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:var(--sp-3)}
+  .jobcard{background:var(--surface);border:var(--bd);border-radius:var(--r-3);padding:14px 15px 13px;
+    display:flex;flex-direction:column;gap:9px;transition:border-color var(--t-fast),box-shadow var(--t-fast)}
+  .jobcard:hover{border-color:var(--line-strong)}
+  .jobcard.alert{border-left:3px solid var(--err)} .jobcard.warn{border-left:3px solid var(--warn)}
+  .jobcard.off{opacity:.6}
+  .jc-head{display:flex;align-items:center;gap:8px;min-width:0}
+  .jc-head .dot{font-size:11px;filter:drop-shadow(0 0 4px currentColor)}
+  .jc-name{font-family:var(--mono);font-weight:700;font-size:14px;color:var(--txt);letter-spacing:-.2px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .jc-head .sp{flex:1}
+  .jc-desc{color:var(--txt-2);font-size:var(--fs-sm);line-height:1.45;min-height:2.9em;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .jc-meta{display:flex;flex-wrap:wrap;gap:3px 12px;font-family:var(--mono);font-size:var(--fs-xs);color:var(--dim)}
+  .jc-meta .sched{color:var(--accent);font-weight:600}
+  .jc-meta b{color:var(--txt-2);font-weight:600}
+  .jc-acts{display:flex;align-items:center;gap:7px;margin-top:3px;padding-top:10px;border-top:1px solid var(--line-2)}
+  .jc-acts .sp{flex:1}
+  .jc-acts .errbtn{color:var(--err);border-color:var(--err-bd)}
+
+  /* крупные кнопки (всегда видимы) */
+  .btn.big{padding:8px 13px;font-size:var(--fs-base);min-height:34px;border-radius:var(--r-2)}
+  .btn.big .ic{width:15px;height:15px}
+  .errpre{margin-top:6px}
+
+  /* лента — вторичная, компактная */
+  .feedcol .feed{border:var(--bd);border-radius:var(--r-3);background:var(--surface);
+    max-height:calc(100vh - 230px);padding:2px 0}
+  .feedcol .ev{padding:6px 12px}
+
+  /* ════════════════════════════════════════════════════════════════════
+     GLASS · глазоморфизм — редакторская подача борда + матовое стекло.
+     Всё скоупится в [data-theme="glass"], остальные темы не трогаются.
+     ════════════════════════════════════════════════════════════════════ */
+  /* фон: aurora-блобы (кобальт + тёплый уголёк), чтобы блюр стекла читался */
+  [data-theme="glass"] body::before{
+    background:
+      radial-gradient(46% 40% at 18% 8%, rgba(43,92,255,.28), transparent 62%),
+      radial-gradient(40% 46% at 88% 14%, rgba(58,160,255,.16), transparent 60%),
+      radial-gradient(52% 50% at 78% 96%, rgba(43,92,255,.20), transparent 62%),
+      radial-gradient(38% 42% at 6% 92%, rgba(255,90,77,.10), transparent 60%);
+    -webkit-mask-image:none; mask-image:none; opacity:1;
+    animation:auroraDrift 26s ease-in-out infinite alternate;
+  }
+  [data-theme="glass"] body::after{
+    background:radial-gradient(120% 90% at 50% -8%, transparent 40%, rgba(9,10,12,.55) 100%);
+  }
+  [data-theme="glass"].no-fx body::before{animation:none}
+  @keyframes auroraDrift{
+    from{transform:translate3d(-1.5%,-1%,0) scale(1.02)}
+    to{transform:translate3d(2%,1.5%,0) scale(1.06)}
+  }
+
+  /* базовое стекло: полупрозрачный фон + блюр + верхний блик-кромка */
+  [data-theme="glass"] .side,
+  [data-theme="glass"] .panel,
+  [data-theme="glass"] .statusbar,
+  [data-theme="glass"] .jobcard,
+  [data-theme="glass"] .feedcol .feed,
+  [data-theme="glass"] .pulse,
+  [data-theme="glass"] .svcrow,
+  [data-theme="glass"] .svccap,
+  [data-theme="glass"] .kpi,
+  [data-theme="glass"] .acard,
+  [data-theme="glass"] .calm,
+  [data-theme="glass"] .box,
+  [data-theme="glass"] .bcard,
+  [data-theme="glass"] .addbox,
+  [data-theme="glass"] .dnabox,
+  [data-theme="glass"] .composer,
+  [data-theme="glass"] .toast,
+  [data-theme="glass"] .goverlay{
+    -webkit-backdrop-filter:blur(22px) saturate(1.35);
+            backdrop-filter:blur(22px) saturate(1.35);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.09), 0 10px 34px -18px rgba(0,0,0,.7);
+  }
+  [data-theme="glass"] .panel,
+  [data-theme="glass"] .box,
+  [data-theme="glass"] .bcard{border-radius:14px}
+  [data-theme="glass"] .kpi,[data-theme="glass"] .acard{border-radius:12px}
+
+  /* сайдбар — вертикальная стеклянная колонна */
+  [data-theme="glass"] .side{
+    background:linear-gradient(180deg, rgba(23,24,27,.62), rgba(16,17,20,.5));
+    border-right:1px solid rgba(255,255,255,.07);
+    box-shadow:inset -1px 0 0 rgba(255,255,255,.04), 8px 0 40px -30px #000;
+  }
+  /* pulse-шапка: липкое стекло поверх скролла */
+  [data-theme="glass"] .pulse{
+    background:linear-gradient(180deg, rgba(23,24,27,.72), rgba(23,24,27,.5));
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+
+  /* акцент навигации — стеклянная кобальтовая плашка */
+  [data-theme="glass"] .nav a.on{
+    background:linear-gradient(90deg, rgba(43,92,255,.20), rgba(43,92,255,.06));
+    box-shadow:inset 0 0 0 1px rgba(43,92,255,.35), -6px 0 22px -10px var(--glow);
+  }
+  [data-theme="glass"] .nav a:hover{background:rgba(255,255,255,.05)}
+
+  /* редакторская типографика: крупные уверенные числа-герои */
+  [data-theme="glass"] .kpi .v,
+  [data-theme="glass"] .ometric .v{
+    font-family:var(--display); font-weight:600; letter-spacing:-.6px;
+    font-variant-numeric:tabular-nums;
+  }
+  [data-theme="glass"] .kpi .v{font-size:26px}
+  [data-theme="glass"] .kpi .k,
+  [data-theme="glass"] .panel>.h .t,
+  [data-theme="glass"] .attention>.h,
+  [data-theme="glass"] .svcrow .lab{letter-spacing:.9px}
+  /* бренд: гротеск-дисплей + один засечный курсив-акцент (по борду) */
+  [data-theme="glass"] .brand b{font-family:var(--display);font-weight:700;letter-spacing:-.3px}
+  [data-theme="glass"] .brand .brand-sub{font-family:var(--serif);font-style:italic;letter-spacing:.1px}
+  [data-theme="glass"] .brand .mark{
+    background:linear-gradient(135deg, rgba(43,92,255,.22), rgba(43,92,255,.04));
+    box-shadow:inset 0 0 0 1px rgba(43,92,255,.4), 0 0 18px -4px var(--glow);
+  }
+
+  /* кнопки и чипы — лёгкое стекло */
+  [data-theme="glass"] .jobcard{border-radius:14px}
+  [data-theme="glass"] .jobcard:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 14px 40px -20px var(--glow)}
+  [data-theme="glass"] .btn.primary{
+    background:linear-gradient(180deg, rgba(43,92,255,.30), rgba(43,92,255,.14));
+    border-color:rgba(43,92,255,.55);color:#eaf0ff;
+    box-shadow:0 4px 16px -6px var(--glow), inset 0 1px 0 rgba(255,255,255,.14)}
+  [data-theme="glass"] .btn.primary:hover{background:linear-gradient(180deg, rgba(43,92,255,.42), rgba(43,92,255,.2))}
+  [data-theme="glass"] .sb-sep{background:rgba(255,255,255,.14)}
+  [data-theme="glass"] .btn{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.1)}
+  [data-theme="glass"] .btn:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.2)}
+  [data-theme="glass"] .chip,[data-theme="glass"] .pill{-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  /* строки внутри стеклянных панелей — hover мягче */
+  [data-theme="glass"] .row:hover,
+  [data-theme="glass"] .svcchip:hover,
+  [data-theme="glass"] .clickrow:hover{background:rgba(255,255,255,.045)}
+  /* свотч темы в футере */
+  .swatch[data-t="glass"]{
+    background:linear-gradient(135deg, rgba(43,92,255,.85), rgba(23,24,27,.9));
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+
+</style>
+<script>
+  // pre-paint: применяем тему и fx до первой отрисовки (без мигания)
+  try{
+    var _t=localStorage.getItem('mc-theme')||'glass';
+    if(_t&&_t!=='dark')document.documentElement.setAttribute('data-theme',_t);
+    document.documentElement.dataset.themeName=_t;
+  }catch(e){}
+</script>
+</head>
+<body>
+<!-- ── SVG-спрайт (инлайн, без CDN) ── -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-overview" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+    <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-svc-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="currentColor"/></symbol>
+  <symbol id="i-svc-degraded" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+    <circle cx="12" cy="12" r="6"/><path d="M12 6 A6 6 0 0 0 12 18 Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-svc-err" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+    <circle cx="12" cy="12" r="7"/><path d="M9 9l6 6M15 9l-6 6"/></symbol>
+  <symbol id="i-run" viewBox="0 0 24 24"><path d="M8 6l10 6-10 6z" fill="currentColor"/></symbol>
+  <symbol id="i-restart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+    <path d="M18.5 8A7 7 0 1 0 19 12"/><path d="M19 4v4h-4"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
+    <path d="M5 9v6h3l5 4V5L8 9z" fill="currentColor"/><path d="M17 8l4 8M21 8l-4 8" stroke-linecap="round"/></symbol>
+  <symbol id="i-log" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+    <rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h6M7 13h10M7 17h7"/></symbol>
+  <symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+    <circle cx="6" cy="17" r="2.4"/><circle cx="18" cy="17" r="2.4"/><circle cx="12" cy="6" r="2.4"/>
+    <path d="M7.5 15l3.3-6.6M16.5 15l-3.3-6.6M8.4 17h7.2"/></symbol>
+  <symbol id="i-claude" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 8l4 4-4 4"/><path d="M13 16h5"/></symbol>
+  <symbol id="i-anomaly" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 4l9 16H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 5h5v5"/><path d="M19 5l-8 8"/><path d="M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 6l-6 6 6 6"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 0-1 1h-4"/></symbol>
+  <symbol id="i-min" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 12h12"/></symbol>
+  <symbol id="i-radar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l6-4"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.4 2.5h4l.4-2.5a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5A7 7 0 0 0 19 12z"/></symbol>
+  <symbol id="i-add" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13h10l1-13"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7M8 14h8v6H8z"/></symbol>
+</defs></svg>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span class="mark glow">PO</span>
+      <div class="tx"><b>Personal OS</b><span class="brand-sub">Mission Control</span></div>
+      <button class="collapse-btn" id="collapseBtn" onclick="toggleNav()" aria-label="свернуть панель" title="свернуть / развернуть боковую панель">
+        <svg class="ic"><use href="#i-chevron"/></svg></button></div>
+    <nav class="nav" id="nav" aria-label="Навигация">
+      <a data-route="overview" role="link" tabindex="0" onclick="go('overview')" onkeydown="navKey(event,'overview')">
+        <svg class="ic"><use href="#i-overview"/></svg><span class="tx">Обзор</span>
+        <span class="end" id="navOverviewEnd"></span></a>
+      <div class="lbl">Сервисы · техническое</div>
+      <div id="navServices"></div>
+      <div class="lbl">Админ-панель · управление</div>
+      <div id="navAdmin"></div>
+      <div class="lbl">Инструменты</div>
+      <a data-route="radar" role="link" tabindex="0" onclick="go('radar')" onkeydown="navKey(event,'radar')">
+        <svg class="ic"><use href="#i-radar"/></svg><span class="tx">Радар · инфополе</span></a>
+      <a data-route="context" role="link" tabindex="0" onclick="go('context')" onkeydown="navKey(event,'context')">
+        <svg class="ic"><use href="#i-graph"/></svg><span class="tx">Хранилище контекстов</span></a>
+      <a data-route="claude" role="link" tabindex="0" onclick="go('claude')" onkeydown="navKey(event,'claude')">
+        <svg class="ic"><use href="#i-claude"/></svg><span class="tx">Claude Code</span>
+        <span class="end" id="navClaudeEnd"></span></a>
+    </nav>
+    <div class="side-foot">
+      <div class="fr"><span class="dot ok live" id="supDot">●</span><span class="full">супервизор</span>
+        <span class="pid mono" id="supPid">—</span></div>
+      <div class="fr"><span class="full">сервисы <b id="supSvc" class="mono">—</b></span><span class="clock" id="clock">—</span></div>
+      <div class="fr"><button class="btn sm" style="width:100%;justify-content:center" onclick="openSettings()"
+        title="темы, фон, оформление"><svg class="ic" style="width:14px;height:14px"><use href="#i-gear"/></svg><span class="full">Настройки</span></button></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="pulse" id="pulse">
+      <span class="verdict" id="pulseVerdict"><span class="vglyph">○</span> опрос состояния…</span>
+      <span class="att" id="pulseAtt"></span>
+      <span class="up" id="pulseUp"></span>
+      <span class="sp"></span>
+      <span class="clock" id="pulseClock">—</span>
+    </div>
+    <div class="topbar">
+      <h1 id="vTitle">Обзор</h1><span class="crumb" id="vCrumb"></span>
+      <span class="sp"></span><span id="vActions"></span>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<div class="modal" id="modal"><div class="box">
+  <div class="mh"><span id="mTitle">log</span><button class="x" onclick="closeModal()" aria-label="закрыть">✕</button></div>
+  <div class="logbox" id="mBody" style="max-height:70vh">…</div>
+</div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<div class="modal" id="setModal"><div class="box">
+  <div class="mh"><svg class="ic" style="width:14px;height:14px;margin-right:7px"><use href="#i-gear"/></svg>
+    Настройки оформления<button class="x" onclick="closeSettings()" aria-label="закрыть">✕</button></div>
+  <div class="set-grid">
+    <div class="set-sec">
+      <div class="lbl">Тема</div>
+      <div class="themes" id="setThemes"></div>
+    </div>
+    <div class="set-sec">
+      <div class="lbl">Фон и эффекты</div>
+      <div class="set-row"><span>Sci-fi фон <span class="hint-i" style="color:var(--dim);font-size:var(--fs-xs)">— сетка и сканлайны</span></span>
+        <span class="sp"></span><button class="toggle on" id="setFx" onclick="toggleFx()" aria-label="фон"></button></div>
+    </div>
+  </div>
+</div></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=x=>(x==null?'':String(x)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SERVICES=[
+  {id:'cron',label:'Cron',icon:'i-overview'},
+  {id:'claude-local-api',label:'Local API',icon:'i-claude'},
+  {id:'tg-blog-editor',label:'Blog editor',icon:'i-log'},
+  {id:'tg-assistant',label:'Ассистент',icon:'i-svc-ok'},
+];
+// Админ-панель — конструкторы и управление сервисами (отдельно от технических данных)
+const ADMIN=[
+  {id:'cron',label:'Конструктор задач',icon:'i-add'},
+  {id:'blog',label:'Блог',icon:'i-log'},
+  {id:'sources',label:'Источники · база',icon:'i-graph'},
+  {id:'blogbase',label:'Блог · база',icon:'i-log'},
+  {id:'psych',label:'Ассистент · аналитика',icon:'i-svc-ok'},
+  {id:'hh',label:'hh-отклик',icon:'i-ext'},
+];
+// темы: id, подпись, цвет-свотч (для настроек)
+const THEMES=[
+  {id:'glass',nm:'Glass',sw:'linear-gradient(135deg,#2b5cff 45%,#17181b 45%)'},
+  {id:'dark',nm:'Тёмная',sw:'#16181d'},
+  {id:'light',nm:'Светлая',sw:'linear-gradient(135deg,#ffffff 50%,#2f6fd0 50%)'},
+  {id:'tactical',nm:'Tactical',sw:'#f0a830'},
+  {id:'hud',nm:'HUD',sw:'#36f0d0'},
+  {id:'synth',nm:'Synthwave',sw:'#ff5cc8'},
+  {id:'matrix',nm:'Matrix',sw:'#36f06a'},
+];
+// краткое «что делает сервис» — подложка, если в services.json нет note
+const SVC_DESC={
+  'cron':'Планировщик: запускает крон-задачи по расписанию (дайджесты, hh-отклики, рассылки, news-ingest) и ведёт ленту запусков.',
+  'claude-local-api':'Локальный Claude API через unix-сокет /tmp/claude_api.sock — крон и боты дёргают модель отсюда, без сетевого ключа.',
+};
+// форма-дубль статусов (Unicode-глиф + слово) — состояние читается без цвета
+const DOT={ok:'●',degraded:'◐',error:'✕',err:'✕',warn:'△',idle:'○',off:'○',disabled:'○',waiting:'◔',wait:'◔',unknown:'—'};
+const HCLASS={ok:'ok',degraded:'degraded',error:'err',warn:'warn',waiting:'wait',disabled:'idle',off:'idle',unknown:'unknown'};
+const HWORD={ok:'ок',degraded:'сбой внутри',error:'упала',warn:'сбой',waiting:'ждёт',disabled:'выкл',unknown:'—'};
+
+function routeFromHash(){const h=decodeURIComponent((location.hash||'').replace(/^#/,'')).trim();return h||'overview';}
+let route=routeFromHash(), openErr=new Set(), prev={}, svcRisk={};
+const RISK={error:0,degraded:1,warn:2,waiting:3,unknown:4,ok:5,disabled:6,off:7}; // меньше = выше (по риску)
+
+async function api(p,o){const r=await fetch(p,o);return r.json();}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600);}
+function icon(id,cls){return `<svg class="ic ${cls||''}" aria-hidden="true"><use href="#${id}"/></svg>`;}
+function fmtMs(ms){return ms?(ms>1000?(ms/1000).toFixed(1)+'s':ms+'ms'):'';}
+
+// ── навигация ──
+function buildNav(){
+  $('#navServices').innerHTML=SERVICES.map(s=>
+    `<a data-route="svc:${s.id}" data-svc="${s.id}" role="link" tabindex="0" onclick="go('svc:${s.id}')" onkeydown="navKey(event,'svc:${s.id}')">
+      ${icon(s.icon)}<span class="tx">${esc(s.label)}</span>
+      <span class="end"><span class="dot unknown" id="nav-${s.id}">—</span></span></a>`).join('');
+  $('#navAdmin').innerHTML=ADMIN.map(a=>
+    `<a data-route="admin:${a.id}" role="link" tabindex="0" onclick="go('admin:${a.id}')" onkeydown="navKey(event,'admin:${a.id}')">
+      ${icon(a.icon)}<span class="tx">${esc(a.label)}</span></a>`).join('');
+}
+function setActive(){document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.route===route));}
+function go(r){route=r;prev={};openErr=new Set();
+  try{const h='#'+r;if(location.hash!==h)location.hash=h;}catch(e){}
+  setActive();render();}
+window.addEventListener('hashchange',()=>{const r=routeFromHash();if(r!==route){route=r;prev={};openErr=new Set();setActive();render();}});
+function navKey(e,r){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(r);}}
+
+// сайдбар — обновляется ВСЕГДА (дёшево), даже на других экранах (J5/J6)
+function updateSidebar(d){
+  $('#supPid').textContent=d.supervisor.pid||'—';
+  $('#supSvc').textContent=`${d.stats.services_alive}/${d.stats.services_total}`;
+  $('#clock').textContent=d.now; $('#pulseClock').textContent=d.now;
+  $('#supDot').className='dot live '+(d.stats.services_alive===d.stats.services_total?'ok':'err');
+  $('#supDot').textContent=d.stats.services_alive===d.stats.services_total?'●':'✕';
+  // статус-точки сервисов в сайдбаре + риск для сортировки
+  (d.services||[]).forEach(s=>{
+    const st=!s.alive?'error':(s.degraded?'warn':'ok'); svcRisk[s.name]=st;
+    const el=$('#nav-'+s.name);
+    if(el){el.className='dot '+(HCLASS[st]||'idle');el.textContent=DOT[st]||'○';
+      el.title=!s.alive?'остановлен':(s.degraded?`перезапускался ${s.restarts}×`:'работает');}
+  });
+  reorderNavServices();
+  // бейдж тревоги у «Обзор»
+  const n=d.health?d.health.attention_count:0, ov=d.health?d.health.overall:'ok';
+  $('#navOverviewEnd').innerHTML=n>0?`<span class="nav-badge ${ov==='error'?'err':''}">${n}</span>`:'';
+  // индикатор активного стрима Claude
+  $('#navClaudeEnd').innerHTML=ccBusy?'<span class="nav-live">● live</span>':'';
+}
+function reorderNavServices(){
+  const cont=$('#navServices');if(!cont)return;
+  const links=[...cont.children];
+  links.sort((a,b)=>(RISK[svcRisk[a.dataset.svc]]??5)-(RISK[svcRisk[b.dataset.svc]]??5));
+  links.forEach(l=>cont.appendChild(l));
+}
+
+// ── рендер по маршруту ──
+function render(){
+  $('#content').classList.remove('wide');
+  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+  if(route==='overview')return renderOverview();
+  if(route==='context')return renderContext();
+  if(route==='graph')return renderGraph();
+  if(route==='zotero')return renderZotero();
+  if(route==='sources')return renderSources();
+  if(route==='capital')return renderCapital();
+  if(route==='radar')return renderRadar();
+  if(route==='claude')return renderClaude();
+  if(route.startsWith('svc:'))return renderService(route.slice(4));
+  if(route.startsWith('admin:'))return renderAdmin(route.slice(6));
+}
+
+/* ════════════════ ОБЗОР ════════════════ */
+async function renderOverview(){
+  $('#vTitle').textContent='Обзор';$('#vCrumb').textContent='состояние системы';$('#vActions').innerHTML='';
+  let d;try{d=await api('/api/state');}catch{pulseDown();$('#content').innerHTML='<div class="empty">Пульт не получает состояние от сервера.<br>Повтор через 5с.</div>';return;}
+  updateSidebar(d);updatePulse(d.health);
+  if(route!=='overview')return;
+  // первый каркас (один раз) — дальше точечный diff (T14)
+  if(!$('#ovAttention')) buildOverviewSkeleton();
+  patchAttention(d.attention,d.health);
+  patchStatus(d);
+  patchJobs(d.jobs.filter(j=>!j.is_example));
+  patchFeed(d.feed);
+}
+// одна полоса статуса: сервисы (точки) + метрики пульта + вход в Claude Code
+function patchStatus(d){
+  const box=$('#ovStatus');if(!box)return;
+  const services=d.services||[];
+  const mc=services.find(s=>s.name==='mission-control')||{};
+  const sorted=[...services].sort((a,b)=>{
+    const sa=!a.alive?'error':a.degraded?'warn':'ok', sb=!b.alive?'error':b.degraded?'warn':'ok';
+    return (RISK[sa]??5)-(RISK[sb]??5);
+  });
+  const inAlert=services.filter(s=>!s.alive||s.degraded).length;
+  const dots=sorted.map(s=>{
+    const st=!s.alive?'error':s.degraded?'warn':'ok';
+    return `<button class="sdot ${HCLASS[st]}" onclick="go('svc:${jsq(s.name)}')"
+      title="${esc(!s.alive?'остановлен':s.degraded?('перезапускался '+s.restarts+'×'):'работает '+s.uptime)}">
+      <span class="dot">${DOT[st]}</span>${esc(s.name)}</button>`;
+  }).join('');
+  const health=inAlert?`<span class="sb-alert">↑ ${inAlert} в тревоге</span>`
+    :`<span class="sb-ok">${services.length}/${services.length} живы</span>`;
+  const html=`<div class="sb-left"><span class="sb-lab">сервисы</span>${dots}</div>
+    <div class="sb-right">${health}<span class="sb-sep"></span>
+      <span class="sb-metric tip" data-tip="Открытых диалогов Claude Code через пульт.">⌁ сессий <b>${d.stats.mc_sessions??0}</b></span>
+      <span class="sb-metric tip" data-tip="Сколько раз супервизор перезапускал пульт.">↻ рестартов <b>${mc.restarts??0}</b></span>
+      <button class="btn big" onclick="go('claude')">${icon('i-ext')} Claude Code →</button></div>`;
+  if(box._sig!==html){box.innerHTML=html;box._sig=html;}
+}
+// человекочитаемое расписание из cron/@every
+function humanSchedule(s){
+  if(!s)return '';s=String(s).trim();
+  if(s.startsWith('@every')){
+    const m=s.replace('@every','').trim();const num=parseInt(m,10);const unit=m.replace(/[0-9.\s]/g,'');
+    if(unit==='h')return num===1?'каждый час':`каждые ${num} ч`;
+    if(unit==='m')return num===1?'каждую минуту':`каждые ${num} мин`;
+    if(unit==='d')return num===1?'каждый день':`каждые ${num} дн`;
+    if(unit==='s')return `каждые ${num} с`;
+    return 'каждые '+m;
+  }
+  const p=s.split(/\s+/);
+  if(p.length===5&&/^\d+$/.test(p[0])&&/^\d+$/.test(p[1])){
+    const t=p[1].padStart(2,'0')+':'+p[0].padStart(2,'0');
+    if(p[2]==='*'&&p[3]==='*'&&p[4]==='*')return 'ежедневно '+t;
+    if(p[2]==='*'&&p[3]==='*')return t+' · дни '+p[4];
+    return t;
+  }
+  return s;
+}
+function toggleFeed(){
+  const g=$('#ovOps');if(!g)return;
+  const off=g.classList.toggle('nofeed');
+  const b=$('#ovFeedToggle');if(b)b.textContent=off?'◂ Лента':'Лента ▸';
+  try{localStorage.setItem('mc-feed-off',off?'1':'0');}catch(e){}
+}
+// Mission Control больше не в списке сервисов — его метрики живут тут, на обзоре
+function patchMc(d){
+  const box=$('#ovMc');if(!box)return;
+  const mc=(d.services||[]).find(s=>s.name==='mission-control')||{};
+  const alive=mc.alive!==false;
+  const html=`<span class="lab" title="это сам пульт Mission Control — вынесен из списка сервисов">пульт</span>
+    <span class="svcchip" title="состояние процесса пульта"><span class="dot ${alive?'ok':'err'}">${alive?'●':'✕'}</span>
+      <span class="id">mission-control</span><span class="ut">${esc(mc.uptime||'—')}</span></span>
+    <span class="pill tip" data-tip="Сколько диалогов Claude Code открыто через пульт (вкладка Claude Code).">⌁ сессий: ${d.stats.mc_sessions??0}</span>
+    <span class="pill tip" data-tip="Сколько раз супервизор перезапускал процесс пульта.">↻ рестартов: ${mc.restarts??0}</span>
+    <span class="lab" style="margin-left:auto"><a class="svcchip" onclick="go('claude')" style="cursor:pointer">⌁ открыть Claude Code →</a></span>`;
+  if(box._sig!==html){box.innerHTML=html;box._sig=html;}
+}
+function buildOverviewSkeleton(){
+  let feedOff=false;try{feedOff=localStorage.getItem('mc-feed-off')==='1';}catch(e){}
+  $('#content').innerHTML=`
+    <div id="ovAttention"></div>
+    <div class="statusbar" id="ovStatus"></div>
+    <div class="opsgrid ${feedOff?'nofeed':''}" id="ovOps">
+      <section class="opscol jobs">
+        <div class="colhead"><span class="t">Крон-задачи</span><span class="badge" id="ovJobsBadge">—</span>
+          <button class="feedtoggle" id="ovFeedToggle" onclick="toggleFeed()">${feedOff?'◂ Лента':'Лента ▸'}</button></div>
+        <div class="jobgrid" id="ovJobs"></div>
+      </section>
+      <aside class="opscol feedcol" id="ovFeedCol">
+        <div class="colhead"><span class="t">Лента запусков</span><span class="badge" id="ovFeedBadge"></span></div>
+        <div class="feed" id="ovFeed"></div>
+      </aside>
+    </div>`;
+}
+
+// ── Зона 0 · Пульс ──
+function updatePulse(h){
+  const ov=h?h.overall:'ok', n=h?h.attention_count:0;
+  const p=$('#pulse');p.className='pulse '+ov;
+  const glyph=ov==='err'||ov==='error'?'✕':(ov==='degraded'?'◐':'●');
+  const word=ov==='error'||ov==='err'?'СИСТЕМА · АВАРИЯ':(ov==='degraded'?'СИСТЕМА · ЕСТЬ СБОИ':'СИСТЕМА · НОРМА');
+  $('#pulseVerdict').innerHTML=`<span class="vglyph">${glyph}</span> ${word}`;
+  const att=$('#pulseAtt');
+  if(n>0){att.textContent=`⚠ ${n} ${plural(n,'требует','требуют','требуют')} внимания`;att.classList.toggle('err',ov==='error');}
+  else{att.textContent='0 аномалий';att.classList.remove('err');}
+}
+function pulseDown(){const p=$('#pulse');p.className='pulse err';
+  $('#pulseVerdict').innerHTML='<span class="vglyph">✕</span> ПУЛЬТ НЕ ПОЛУЧАЕТ СОСТОЯНИЕ';
+  $('#pulseAtt').textContent='повтор 5с';$('#supDot').className='dot err';$('#supDot').textContent='✕';}
+function plural(n,a,b,c){const m=n%100,d=n%10;return m>=11&&m<=14?c:d===1?a:d>=2&&d<=4?b:c;}
+
+// ── Зона 1 · Требует внимания (diff по entity_id) ──
+function patchAttention(att,h){
+  const box=$('#ovAttention');if(!box)return;
+  if(!att||!att.length){
+    if(box.dataset.mode!=='calm'){box.dataset.mode='calm';
+      box.innerHTML=`<div class="calm">${icon('i-svc-ok')} Всё работает само · 0 аномалий — пульт спокоен.</div>`;}
+    return;
+  }
+  box.dataset.mode='list';
+  const sevN=att.filter(a=>a.severity==='error').length;
+  let inner=`<div class="attention"><div class="h">${icon('i-anomaly')} Требует внимания
+    <span class="n ${sevN?'err':''}">${att.length}</span></div><div id="acards"></div></div>`;
+  let cards=$('#acards');
+  if(!cards){box.innerHTML=inner;cards=$('#acards');}
+  else { // обновить только счётчик в шапке
+    const n=box.querySelector('.attention .n');n.textContent=att.length;n.className='n '+(sevN?'err':'');
+  }
+  diffCards(cards,att);
+}
+function diffCards(cont,att){
+  const seen=new Set();
+  att.forEach((a,i)=>{
+    const key=a.kind+':'+a.entity_id;seen.add(key);
+    let el=cont.querySelector(`[data-key="${cssEsc(key)}"]`);
+    const html=acardInner(a);
+    if(!el){el=document.createElement('div');el.dataset.key=key;el.className=acardCls(a);el.innerHTML=html;cont.appendChild(el);}
+    else if(el.dataset.sig!==acardSig(a)){el.className=acardCls(a);el.innerHTML=html;el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),250);}
+    el.dataset.sig=acardSig(a);
+    // переустановить раскрытую ошибку, если была
+    const pre=el.querySelector('.errpre');if(pre)pre.style.display=openErr.has(key)?'block':'none';
+    cont.appendChild(el); // порядок по att (бэк уже отсортировал)
+  });
+  [...cont.children].forEach(c=>{if(!seen.has(c.dataset.key))c.remove();});
+}
+function acardSig(a){return [a.severity,a.reason,a.hint||'',a.error?1:0,(a.actions||[]).join(',')].join('|');}
+function acardCls(a){return 'acard '+(a.severity==='error'?'err':a.severity==='info'?'info':'');}
+function acardInner(a){
+  const key=a.kind+':'+a.entity_id;
+  const st=a.severity==='error'?'error':a.severity==='info'?'waiting':'warn';
+  const dot=`<span class="dot ${HCLASS[st]}">${DOT[st]}</span>`;
+  const acts=(a.actions||[]).map(ac=>attBtn(ac,a)).join('');
+  const pre=a.error?`<div class="errpre" style="display:${openErr.has(key)?'block':'none'}">${esc(a.error)}</div>`:'';
+  const hint=a.hint?`<div class="ahint">${icon('i-anomaly')} ${esc(a.hint)}</div>`:'';
+  return `<div class="top">${dot}<span class="chip ${HCLASS[st]}">${HWORD[st]||a.severity}</span>
+      <span class="id">${esc(a.entity_id)}</span><span class="badge" style="color:var(--dim);font-family:var(--mono);font-size:var(--fs-xs)">· ${a.kind==='service'?'сервис':'задача'}</span></div>
+    <div class="reason">${esc(a.reason)}</div>${hint}
+    <div class="acts">${acts}</div>${pre}`;
+}
+function attBtn(ac,a){
+  const id=a.entity_id, kind=a.kind, key=kind+':'+id;
+  if(ac==='run')         return `<button class="btn sm primary" onclick="runJob('${jsq(id)}',this)">${icon('i-run')} прогнать</button>`;
+  if(ac==='show_error')  return a.error?`<button class="btn sm" onclick="toggleErr('${jsq(key)}',this)">${icon('i-log')} показать ошибку</button>`:'';
+  if(ac==='toggle_off')  return `<button class="btn sm" onclick="toggleJob('${jsq(id)}',false)">${icon('i-mute')} заглушить</button>`;
+  if(ac==='restart')     return `<button class="btn sm" onclick="restartSvc('${jsq(id)}',this)">${icon('i-restart')} перезапустить</button>`;
+  if(ac==='log')         return kind==='service'
+                           ? `<button class="btn sm" onclick="showSvcLog('${jsq(id)}')">${icon('i-log')} лог</button>`
+                           : `<button class="btn sm" onclick="showLog('${jsq(id)}')">${icon('i-log')} лог</button>`;
+  if(kind==='service')   return `<button class="btn sm" onclick="go('svc:${jsq(id)}')">${icon('i-ext')} открыть</button>`;
+  return '';
+}
+function jsq(s){return String(s).replace(/'/g,"\\'");}
+function cssEsc(s){return String(s).replace(/[^a-zA-Z0-9_:-]/g,'\\$&');}
+
+// ── Зона 2 · ряд сервисов (здоровые ужаты) ──
+function patchServiceStrip(services){
+  const box=$('#ovSvc');if(!box)return;
+  const sorted=[...services].sort((a,b)=>{
+    const sa=!a.alive?'error':a.degraded?'warn':'ok', sb=!b.alive?'error':b.degraded?'warn':'ok';
+    return (RISK[sa]??5)-(RISK[sb]??5);
+  });
+  const inAlert=services.filter(s=>!s.alive||s.degraded).length;
+  let html=`<span class="lab">сервисы</span>`+sorted.map(s=>{
+    const st=!s.alive?'error':s.degraded?'warn':'ok';
+    return `<span class="svcchip" role="link" tabindex="0" onclick="go('svc:${jsq(s.name)}')" onkeydown="navKey(event,'svc:${jsq(s.name)}')"
+      title="${esc(!s.alive?'остановлен':s.degraded?('перезапускался '+s.restarts+'×'):'работает '+s.uptime)}">
+      <span class="dot ${HCLASS[st]}">${DOT[st]}</span><span class="id">${esc(s.name)}</span><span class="ut">${esc(s.uptime||'')}</span></span>`;
+  }).join('')+(inAlert?`<span class="lab" style="margin-left:auto;color:var(--degraded)">↑ ${inAlert} в тревоге</span>`:`<span class="lab" style="margin-left:auto;color:var(--ok)">${services.length}/${services.length} живы</span>`);
+  if(box._sig!==html){box.innerHTML=html;box._sig=html;}
+}
+
+// ── Крон-задачи (diff по id, сорт по риску) ──
+function patchJobs(jobs){
+  const cont=$('#ovJobs');if(!cont)return;
+  const sorted=[...jobs].sort((a,b)=>(RISK[a.health]??5)-(RISK[b.health]??5));
+  $('#ovJobsBadge').textContent=`${jobs.filter(j=>j.enabled).length} активны`;
+  const seen=new Set();
+  sorted.forEach(j=>{
+    seen.add(j.id);
+    let el=cont.querySelector(`[data-id="${cssEsc(j.id)}"]`);
+    const sig=jobSig(j);
+    if(!el){el=document.createElement('div');el.dataset.id=j.id;el.innerHTML=jobRowInner(j);el.className=jobRowCls(j);cont.appendChild(el);}
+    else if(el.dataset.sig!==sig){el.innerHTML=jobRowInner(j);el.className=jobRowCls(j);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),250);}
+    el.dataset.sig=sig;
+    const pre=el.querySelector('.errpre');if(pre)pre.style.display=openErr.has('job:'+j.id)?'block':'none';
+    cont.appendChild(el);
+  });
+  [...cont.children].forEach(c=>{if(!seen.has(c.dataset.id))c.remove();});
+}
+function jobSig(j){return [j.health,j.enabled,j.last_run,j.last_ms,j.next_run,j.missing,j.last_error?1:0].join('|');}
+function jobRowCls(j){return 'jobcard'+(j.health==='error'?' alert':j.health==='degraded'||j.health==='waiting'?' warn':!j.enabled?' off':'');}
+function jobRowInner(j){
+  const h=j.health;
+  const chip=`<span class="chip ${HCLASS[h]||'unknown'}">${DOT[h]||'—'} ${HWORD[h]||h}</span>`;
+  const miss=j.missing?`<span class="chip wait">◔ ждёт ${esc(j.missing)}</span>`:'';
+  const hasErr=(h==='error'||h==='degraded')&&j.last_error;
+  const errBtn=hasErr?`<button class="btn big errbtn" onclick="toggleErr('job:${jsq(j.id)}',this)">${icon('i-log')} Ошибка</button>`:'';
+  const pre=hasErr?`<div class="errpre" style="display:${openErr.has('job:'+j.id)?'block':'none'}">${esc(j.last_error)}</div>`:'';
+  const sched=humanSchedule(j.schedule);
+  return `<div class="jc-head"><span class="dot ${HCLASS[h]||'unknown'}">${DOT[h]||'●'}</span>
+      <span class="jc-name" title="${esc(j.id)}">${esc(j.id)}</span>${miss}<span class="sp"></span>${chip}</div>
+    <div class="jc-desc">${esc(j.description)}</div>
+    <div class="jc-meta"><span class="sched" title="${esc(j.schedule)}">◷ ${esc(sched)}</span>
+      <span>след. <b>${esc(j.next_run)}</b></span>
+      <span>посл. ${esc(j.last_run)}${j.last_ms?' · '+fmtMs(j.last_ms):''}</span></div>
+    <div class="jc-acts">
+      <button class="btn big primary" onclick="runJob('${jsq(j.id)}',this)">${icon('i-run')} Запустить</button>
+      <button class="btn big" onclick="showLog('${jsq(j.id)}')">${icon('i-log')} Лог</button>
+      ${errBtn}<span class="sp"></span>
+      <button class="toggle ${j.enabled?'on':''}" role="switch" aria-checked="${j.enabled}"
+        title="${j.enabled?'выключить задачу':'включить задачу'}" onclick="toggleJob('${jsq(j.id)}',${!j.enabled})"></button>
+    </div>${pre}`;
+}
+
+// ── Лента (точечное добавление, скролл сохраняется) ──
+function patchFeed(feed){
+  const cont=$('#ovFeed');if(!cont)return;
+  $('#ovFeedBadge').textContent=feed.length?feed.length:'';
+  if(!feed.length){if(cont._sig!=='empty'){cont.innerHTML='<div class="empty">Запусков ещё не было — появятся после первого прогона.</div>';cont._sig='empty';}return;}
+  const sig=feed.map(e=>e.ts+e.job+e.result).join('|');
+  if(cont._sig===sig)return;
+  const top=cont.scrollTop;
+  cont.innerHTML=feed.map(feedRow).join('');cont._sig=sig;cont.scrollTop=top;
+}
+function feedRow(e){return `<div class="ev ${e.result==='OK'?'':'err'}"><span class="t">${esc((e.ts||'').slice(5,16))}</span>
+  <span class="j">${esc(e.job)}</span><span class="chip ${e.result==='OK'?'ok':'err'}">${esc(e.result)}</span></div>`;}
+
+// ── общие действия ──
+function toggleErr(key,btn){openErr.has(key)?openErr.delete(key):openErr.add(key);
+  const card=btn.closest('.acard,.row,.jobcard');const pre=card&&card.querySelector('.errpre');
+  if(pre)pre.style.display=openErr.has(key)?'block':'none';}
+async function runJob(id,btn){btn.disabled=true;const old=btn.innerHTML;btn.innerHTML='…';
+  let r;try{r=await api('/api/cron/run',{method:'POST',body:JSON.stringify({id})});}catch(e){r={ok:false,out:e.message};}
+  toast(r.ok?`▶ ${id} запущена`:`✗ ${r.out}`);btn.innerHTML=old;btn.disabled=false;setTimeout(()=>{prev={};render();},1400);}
+async function toggleJob(id,en){let r;try{r=await api('/api/cron/toggle',{method:'POST',body:JSON.stringify({id,enabled:en})});}catch(e){r={ok:false,out:e.message};}
+  toast(r.ok?`${id} → ${en?'on':'off'}`:`✗ ${r.out}`);prev={};render();}
+async function restartSvc(name,btn){if(btn){btn.disabled=true;btn.innerHTML='…рестарт';}
+  let r;try{r=await api('/api/service/restart',{method:'POST',body:JSON.stringify({name})});}catch(e){r={ok:false,out:e.message};}
+  toast(r.ok?`↻ ${name}: ${r.out}`:`✗ ${r.out}`);if(btn){btn.disabled=false;}setTimeout(()=>{prev={};render();},1600);}
+async function restartGlobal(){if(!confirm('Глобальный рестарт супервизора — перезапустит ВСЕ 5 сервисов. Продолжить?'))return;
+  let r;try{r=await api('/api/service/restart',{method:'POST',body:'{}'});}catch(e){r={ok:false,out:e.message};}
+  toast(r.ok?'↻ перезапуск всех сервисов…':'✗ '+r.out);}
+
+/* ════════════════ СЕРВИС ════════════════ */
+async function renderService(name){
+  const meta=SERVICES.find(s=>s.id===name)||{label:name};
+  $('#vTitle').textContent=meta.label;$('#vCrumb').textContent='сервис · '+name;
+  const single=name!=='mission-control';
+  $('#vActions').innerHTML=
+    (single?`<button class="btn" onclick="restartSvc('${jsq(name)}',this)">${icon('i-restart')} Перезапустить сервис</button> `:'')+
+    `<button class="btn danger" onclick="restartGlobal()">${icon('i-restart')} Рестарт супервизора</button>`;
+  let d;try{d=await api('/api/service/'+encodeURIComponent(name));}catch{$('#content').innerHTML='<div class="empty">Сервис не ответил.<br>Повтор через 5с.</div>';return;}
+  if(route!=='svc:'+name)return;
+  // обновим пульс/сайдбар фоновым state'ом (чтобы тревога была видна и тут)
+  try{const ds=await api('/api/state');updateSidebar(ds);updatePulse(ds.health);}catch{}
+  if(route!=='svc:'+name)return;
+  const dot=d.alive?'<span class="dot ok">●</span>':'<span class="dot err">✕</span>';
+  let head=`<div class="kpis">
+    <div class="kpi"><div class="k">Статус</div><div class="v ${d.alive?'ok':'err'}">${dot} ${d.alive?'работает':'остановлен'}</div>
+      ${d.degraded?'<div class="ctx" style="color:var(--warn)">перезапускался '+d.restarts+'×</div>':''}</div>
+    <div class="kpi"><div class="k">PID</div><div class="v">${d.pid||'—'}</div></div>
+    <div class="kpi"><div class="k">Аптайм</div><div class="v">${esc(d.uptime||'—')}</div></div>
+    <div class="kpi"><div class="k">Перезапусков</div><div class="v ${d.restarts?'warn':''}">${d.restarts||0}</div>
+      ${d.last_exit?'<div class="ctx">last_exit '+esc(d.last_exit)+'</div>':''}</div>
+    ${(d.cards||[]).map(c=>kpi(c.k,c.v,c.cls)).join('')}
+  </div>`;
+  let body='';
+  if(d.jobs){
+    const jobs=[...d.jobs.filter(j=>!j.is_example)].sort((a,b)=>(RISK[a.health]??5)-(RISK[b.health]??5));
+    body+=`<div class="panel"><div class="h"><span class="t">Задачи</span><span class="sp"></span>
+      <span class="badge">${jobs.filter(j=>j.enabled).length} активны</span></div>
+      ${jobs.length?`<div class="jobgrid" style="padding:var(--sp-3)">${jobs.map(jobRowStatic).join('')}</div>`:'<div class="empty">Задач пока нет.</div>'}</div>`;
+    if(d.radar&&Object.keys(d.radar).length)body+=`<div class="svccap">${icon('i-radar')}
+      Radar собирает инфополе (${d.radar.items||0} материалов) — из него <b>news-ingest</b> и дайджест берут материал.
+      Полные данные базы вынесены в отдельную вкладку: <a class="svcchip" style="cursor:pointer;display:inline-flex" onclick="go('radar')"><span class="id" style="color:var(--accent)">Радар · инфополе →</span></a></div>`;
+    body+=runsPanel(d.recent);
+  }
+  if(d.activity){
+    const bm=Object.entries(d.by_model||{}).map(([m,c])=>`<span class="chip idle" style="margin-right:6px">${esc(m)}: ${c}</span>`).join('');
+    body+=`<div class="panel"><div class="h"><span class="t">Активность local-API</span><span class="sp"></span><span>${bm}</span></div>
+      <div class="feed">${d.activity.length?d.activity.map(apiRow).join(''):'<div class="empty">Тихо — другие процессы (крон/боты) ещё не обращались к local-API через /tmp/claude_api.sock.<br>Это норма, не ошибка.</div>'}</div></div>`;
+  }
+  if(d.recent&&!d.jobs)body+=runsPanel(d.recent);
+  if(d.sessions)body+=`<div class="panel"><div class="h"><span class="t">Последние Claude-сессии</span></div>
+    ${d.sessions.length?d.sessions.map(s=>`<div class="row"><div class="meta"><div class="name"><span class="id">${esc(s.id.slice(0,8))}</span></div><div class="desc">${esc(s.title)}</div></div><div class="when">${esc(s.created)}<br>${esc(s.model)}</div></div>`).join(''):'<div class="empty">Сессий пока нет.</div>'}</div>`;
+  body+=`<div class="panel"><details><summary>Лог сервиса</summary><div class="logbox">${esc(d.log||'(лог пуст — задача ещё не запускалась)')}</div></details></div>`;
+  const note=d.note||SVC_DESC[name]||'';
+  const cap=note?`<div class="svccap">${icon('i-overview')} ${esc(note)}</div>`:'';
+  $('#content').innerHTML=cap+head+body;
+}
+function jobRowStatic(j){ // страница сервиса — те же крупные карточки, что и в Обзоре
+  return `<div class="${jobRowCls(j)}" data-id="${esc(j.id)}">${jobRowInner(j)}</div>`;
+}
+function kpi(k,v,cls){return `<div class="kpi"><div class="k">${esc(k)}</div><div class="v ${cls||''}">${v}</div></div>`;}
+function runsPanel(recent){if(!recent)return '';
+  return `<div class="panel"><div class="h"><span class="t">Последние запуски</span></div>
+    <div class="feed">${recent.length?recent.map(feedRow).join(''):'<div class="empty">Запусков ещё не было.</div>'}</div></div>`;}
+function apiRow(a){
+  const full=JSON.stringify({ts:a.ts,model:a.model,ms:a.ms,ok:a.ok,prompt:a.prompt,result:a.result});
+  return `<div class="act clickrow" onclick="openApiDialog(this)" data-full="${esc(full)}" title="открыть полный диалог">
+    <div class="ah"><span class="dot ${a.ok?'ok':'err'}">${a.ok?'●':'✕'}</span> ${esc((a.ts||'').slice(5,16))} · ${esc(a.model)} · ${fmtMs(a.ms)}
+      <span style="margin-left:auto;color:var(--accent)">открыть диалог →</span></div>
+    <div class="ap">▸ ${esc(a.prompt)}</div><div class="ar">${esc(a.result)}</div></div>`;}
+function openApiDialog(el){
+  let a;try{a=JSON.parse(el.dataset.full);}catch{return;}
+  $('#mTitle').textContent='диалог local-API · '+esc(a.model||'')+' · '+esc((a.ts||'').slice(5,16))+(a.ok?'':' · ошибка');
+  $('#mBody').innerHTML=`<div style="white-space:pre-wrap;font-family:var(--mono);font-size:var(--fs-xs);line-height:1.6">`+
+    `<div style="color:var(--accent);margin-bottom:5px;font-weight:600">▸ ЗАПРОС (prompt)</div>${esc(a.prompt||'(пусто)')}`+
+    `<div style="color:${a.ok?'var(--ok)':'var(--err)'};margin:16px 0 5px;font-weight:600">← ОТВЕТ модели</div>${esc(a.result||'(пусто)')}</div>`;
+  $('#modal').classList.add('on');}
+
+/* ════════════════ ГРАФ (lazy iframe — T15) ════════════════ */
+async function renderGraph(){
+  $('#vTitle').textContent='Граф связей';$('#vCrumb').textContent='семантический граф базы знаний · L4-память';
+  $('#vActions').innerHTML='';
+  const c=$('#content');c.classList.add('wide');
+  c.innerHTML='<div class="gstage"><div class="gph">загрузка метрик…</div></div>';
+  let m;try{m=await api('/api/graph');}catch{m={};}
+  if(route!=='graph')return;
+  try{const ds=await api('/api/state');updateSidebar(ds);updatePulse(ds.health);}catch{}
+  if(route!=='graph')return;
+  if(!m.exists){
+    c.innerHTML=`<div class="gstage"><div class="gph"><div>Граф ещё не собран.<br>
+      vsearch соберёт graph.json + graph.html (≈1–2 мин).
+      <div class="act-line" style="margin-top:14px"><button class="btn primary" onclick="rebuildGraph(this)">${icon('i-restart')} Построить граф</button></div></div></div></div>`;return;
+  }
+  // управление — в шапке (не поверх графа); телеметрия — в подписи; iframe чистый, тема из mission-control
+  $('#vActions').innerHTML=`<button class="btn sm icon-btn" onclick="rebuildGraph(this)">${icon('i-restart')} перестроить</button>
+    <a class="btn sm icon-btn" href="/graph" target="_blank" rel="noopener">${icon('i-ext')} отдельно</a>`;
+  $('#vCrumb').textContent=`семантический граф · L4 · ${m.notes??'—'} ${plural(m.notes||0,'заметка','заметки','заметок')} · ${m.edges??'—'} ${plural(m.edges||0,'связь','связи','связей')} · ${m.size_mb||0} МБ`;
+  c.innerHTML=`<div class="gstage" id="gstage">
+    <iframe src="/graph" onload="syncGraphTheme(this)" title="граф векторных связей" loading="lazy"></iframe>
+  </div>`;
+}
+/* тема вложенного графа = тема mission-control (same-origin: зовём его же setTheme) */
+function graphThemeName(){return (document.documentElement.dataset.themeName||'dark')==='light'?'light':'dark';}
+function syncGraphTheme(ifr){try{ifr.contentWindow.setTheme(graphThemeName());}catch(e){}}
+function syncOpenGraphTheme(){const f=document.querySelector('#gstage iframe');if(f)syncGraphTheme(f);}
+async function rebuildGraph(btn){
+  btn.disabled=true;btn.innerHTML='…строю';
+  let r;try{r=await api('/api/graph/rebuild',{method:'POST',body:'{}'});}catch(e){r={ok:false,out:e.message};}
+  toast(r.ok?'↻ перестройка графа запущена (≈1–2 мин) — потом обнови':'✗ '+(r.out||'ошибка'));
+  setTimeout(()=>{btn.disabled=false;btn.innerHTML=icon('i-restart')+' Перестроить';},2500);
+}
+
+/* ════════════════ БИБЛИОТЕКА · ZOTERO ════════════════ */
+async function renderZotero(){
+  $('#vTitle').textContent='Библиотека · Zotero';$('#vCrumb').textContent='векторная библиотека · книги + ссылки-источники, выделения + полный текст';
+  $('#vActions').innerHTML='';
+  const c=$('#content');c.classList.add('wide');
+  c.innerHTML='<div class="gstage"><div class="gph">загрузка статуса…</div></div>';
+  let m;try{m=await api('/api/zotero');}catch{m={};}
+  if(route!=='zotero')return;
+  try{const ds=await api('/api/state');updateSidebar(ds);updatePulse(ds.health);}catch{}
+  if(route!=='zotero')return;
+  if(!m.exists){
+    c.innerHTML=`<div class="gstage"><div class="gph"><div>Индекс библиотеки ещё не собран.<br>
+      Сервис <b>zotero-index</b> соберёт его при первом цикле, или запусти вручную.
+      <div class="act-line" style="margin-top:14px"><button class="btn primary" onclick="rebuildZotero(this)">${icon('i-restart')} Собрать индекс</button></div></div></div></div>`;return;
+  }
+  const canGraph=m.graph_html;
+  // управление — в шапке; статы — в подписи; iframe чистый, тема из mission-control
+  $('#vActions').innerHTML=`<button class="btn sm icon-btn" onclick="rebuildZotero(this)">${icon('i-restart')} обновить</button>
+    ${canGraph?`<a class="btn sm icon-btn" href="/zotero/graph" target="_blank" rel="noopener">${icon('i-ext')} отдельно</a>`:''}`;
+  $('#vCrumb').textContent=`${m.book_count??'—'} ${plural(m.book_count||0,'книга','книги','книг')} · ${m.books??'—'} ${plural(m.books||0,'источник','источника','источников')} · ${m.annotations??'—'} ${plural(m.annotations||0,'выделение','выделения','выделений')} · ${m.chunks??'—'} ${plural(m.chunks||0,'чанк','чанка','чанков')} · ${m.graph_edges??'—'} ${plural(m.graph_edges||0,'связь','связи','связей')}`;
+  const stageInner=canGraph
+    ? `<iframe src="/zotero/graph" onload="syncGraphTheme(this)" title="граф библиотеки Zotero" loading="lazy"></iframe>`
+    : `<div class="gph" id="zoteroSlot"><div>
+      Векторная библиотека — <b>${m.book_count??'—'}</b> ${plural(m.book_count||0,'книга','книги','книг')} · <b>${m.books??'—'}</b> ${plural(m.books||0,'источник','источника','источников')} · <b>${m.annotations??'—'}</b> ${plural(m.annotations||0,'выделение','выделения','выделений')} · <b>${m.chunks??'—'}</b> ${plural(m.chunks||0,'чанк','чанка','чанков')}.<br>
+      <span style="color:var(--dim)">Граф библиотеки ещё не собран.</span>
+      <div class="act-line" style="margin-top:16px">
+        <button class="btn primary" onclick="rebuildZotero(this)">${icon('i-restart')} Построить граф</button>
+      </div></div></div>`;
+  c.innerHTML=`<div class="gstage" id="gstage">${stageInner}</div>`;
+}
+async function rebuildZotero(btn){
+  btn.disabled=true;btn.innerHTML='…обновляю';
+  let r;try{r=await api('/api/zotero/rebuild',{method:'POST',body:'{}'});}catch(e){r={ok:false,out:e.message};}
+  toast(r.ok?'↻ обновление библиотеки запущено — потом обнови страницу':'✗ '+(r.out||'ошибка'));
+  setTimeout(()=>{btn.disabled=false;btn.innerHTML=icon('i-restart')+' Обновить';},2500);
+}
+
+/* ════════════════ ГРАФ БАЗЫ ИСТОЧНИКОВ (раскраска по origin) ════════════════ */
+async function renderSources(){
+  $('#vTitle').textContent='База источников';$('#vCrumb').textContent='единое поле · Zotero + сообщества/веб · раскраска по origin';
+  $('#vActions').innerHTML='';
+  const c=$('#content');c.classList.add('wide');
+  c.innerHTML='<div class="gstage"><div class="gph">загрузка статуса…</div></div>';
+  let m;try{m=await api('/api/sources');}catch{m={};}
+  if(route!=='sources')return;
+  try{const ds=await api('/api/state');updateSidebar(ds);updatePulse(ds.health);}catch{}
+  if(route!=='sources')return;
+  if(!m.exists){
+    c.innerHTML=`<div class="gstage"><div class="gph"><div>База источников пуста.<br>
+      Собери ссылки (tools/sources/ingest.py) — тогда появится граф.</div></div></div>`;return;}
+  const canGraph=m.graph_html;
+  $('#vActions').innerHTML=`<button class="btn sm icon-btn" onclick="rebuildSources(this)">${icon('i-restart')} обновить граф</button>
+    ${canGraph?`<a class="btn sm icon-btn" href="/sources/graph" target="_blank" rel="noopener">${icon('i-ext')} отдельно</a>`:''}`;
+  $('#vCrumb').textContent=`${m.total_books??'—'} ${plural(m.total_books||0,'источник','источника','источников')} · ${m.total_chunks??'—'} ${plural(m.total_chunks||0,'чанк','чанка','чанков')} · ${m.graph_edges??'—'} ${plural(m.graph_edges||0,'связь','связи','связей')} · построен ${m.graph_built||'—'}`;
+  const stageInner=canGraph
+    ? `<iframe src="/sources/graph" onload="syncGraphTheme(this)" title="граф базы источников" loading="lazy"></iframe>`
+    : `<div class="gph"><div>
+      База источников — <b>${m.total_books??'—'}</b> ${plural(m.total_books||0,'источник','источника','источников')} · <b>${m.total_chunks??'—'}</b> ${plural(m.total_chunks||0,'чанк','чанка','чанков')}.<br>
+      <span style="color:var(--dim)">Граф ещё не собран.</span>
+      <div class="act-line" style="margin-top:16px">
+        <button class="btn primary" onclick="rebuildSources(this)">${icon('i-restart')} Построить граф</button>
+      </div></div></div>`;
+  c.innerHTML=`<div class="gstage" id="gstage">${stageInner}</div>`;
+}
+async function rebuildSources(btn){
+  btn.disabled=true;btn.innerHTML='…обновляю';
+  let r;try{r=await api('/api/sources/rebuild',{method:'POST',body:'{}'});}catch(e){r={ok:false,out:e.message};}
+  toast(r.ok?'↻ пересборка графа источников запущена — потом обнови страницу':'✗ '+(r.out||'ошибка'));
+  setTimeout(()=>{btn.disabled=false;btn.innerHTML=icon('i-restart')+' Обновить граф';},2500);
+}
+
+/* ════════════════ ГРАФ СОЦИАЛЬНОГО КАПИТАЛА (люди и связи) ════════════════ */
+async function renderCapital(){
+  $('#vTitle').textContent='Социальный капитал';$('#vCrumb').textContent='контакты · связи · организации · раскраска по категории';
+  $('#vActions').innerHTML='';
+  const c=$('#content');c.classList.add('wide');
+  c.innerHTML='<div class="gstage"><div class="gph">загрузка статуса…</div></div>';
+  let m;try{m=await api('/api/capital');}catch{m={};}
+  if(route!=='capital')return;
+  try{const ds=await api('/api/state');updateSidebar(ds);updatePulse(ds.health);}catch{}
+  if(route!=='capital')return;
+  if(!m.exists){
+    c.innerHTML=`<div class="gstage"><div class="gph"><div>База контактов пуста.<br>
+      Добавь людей (<code>tools/social-capital/capital.py add</code>) или карточки в
+      «08 — Социальный капитал» — тогда появится граф.</div></div></div>`;return;}
+  const canGraph=m.graph_html;
+  $('#vActions').innerHTML=`<button class="btn sm icon-btn" onclick="rebuildCapital(this,true)">${icon('i-restart')} синхр. + граф</button>
+    <button class="btn sm icon-btn" onclick="rebuildCapital(this,false)">${icon('i-graph')} только граф</button>
+    ${canGraph?`<a class="btn sm icon-btn" href="/capital/graph" target="_blank" rel="noopener">${icon('i-ext')} отдельно</a>`:''}`;
+  const cats=(m.categories||[]).map(x=>`${esc(x.name)} ${x.n}`).join(' · ');
+  $('#vCrumb').textContent=`${m.contacts??'—'} ${plural(m.contacts||0,'контакт','контакта','контактов')} · ${m.orgs??0} орг. · ${m.links??0} ${plural(m.links||0,'связь','связи','связей')} · пора написать ${m.due??0}${cats?' — '+cats:''}`;
+  const stageInner=canGraph
+    ? `<iframe src="/capital/graph" onload="syncGraphTheme(this)" title="граф социального капитала" loading="lazy"></iframe>`
+    : `<div class="gph"><div>В базе <b>${m.contacts??'—'}</b> ${plural(m.contacts||0,'контакт','контакта','контактов')}.<br>
+      <span style="color:var(--dim)">Граф ещё не собран.</span>
+      <div class="act-line" style="margin-top:16px">
+        <button class="btn primary" onclick="rebuildCapital(this,true)">${icon('i-restart')} Построить граф</button>
+      </div></div></div>`;
+  c.innerHTML=`<div class="gstage" id="gstage">${stageInner}</div>`;
+}
+async function rebuildCapital(btn,sync){
+  btn.disabled=true;btn.innerHTML='…обновляю';
+  let r;try{r=await api('/api/capital/rebuild',{method:'POST',body:JSON.stringify({sync:!!sync})});}catch(e){r={ok:false,out:e.message};}
+  toast(r.ok?(sync?'↻ карточки синхронизированы, граф пересобирается — обнови страницу':'↻ пересборка графа связей запущена'):'✗ '+(r.out||'ошибка'));
+  setTimeout(()=>{btn.disabled=false;btn.innerHTML=icon('i-restart')+(sync?' синхр. + граф':' только граф');},2500);
+}
+
+/* ════════════════ ХРАНИЛИЩЕ КОНТЕКСТОВ ════════════════ */
+let ctxTab='images', refsCur=null, refsPol='like', refsCat='';
+let ctxSStore='obsidian', ctxSMode='hybrid', ctxSQval='';
+function ctxCss(){
+  if($('#refsCss'))return;
+  const s=document.createElement('style');s.id='refsCss';
+  s.textContent=`
+  .ctxtabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:var(--bd);padding-bottom:0}
+  .ctxtab{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;cursor:pointer;color:var(--dim);font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .ctxtab .ic{width:15px;height:15px;flex:none}
+  .ctxtab.on{color:var(--accent);border-bottom-color:var(--accent)}
+  .ctxtab:hover{color:var(--txt)}
+  .refs-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .refs-tools input.srch{flex:1;min-width:160px;background:var(--surface-2);color:var(--txt);border:var(--bd);border-radius:var(--r-2);padding:8px 12px;font:inherit}
+  .chip{padding:4px 12px;border-radius:999px;border:var(--bd);background:var(--surface-2);color:var(--dim);cursor:pointer;font-size:var(--fs-xs)}
+  .chip.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+  .bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+  .bcard{background:var(--surface);border:var(--bd);border-radius:var(--r-2);overflow:hidden;cursor:pointer;transition:transform .12s,border-color .12s}
+  .bcard:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .bcard .cov{height:120px;background:var(--surface-2) center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:var(--fs-xs)}
+  .bcard .meta{padding:10px 12px}
+  .bcard .nm{font-weight:600;margin-bottom:4px}
+  .bcard .sub{font-size:var(--fs-xs);color:var(--dim);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .pill{padding:1px 7px;border-radius:999px;font-size:var(--fs-xs);font-weight:700}
+  .pill.like{background:rgba(52,199,89,.16);color:#34c759}
+  .pill.avoid{background:rgba(255,69,58,.16);color:#ff453a}
+  .pill.dna{background:rgba(100,120,255,.16);color:var(--accent)}
+  .catrow{margin:22px 0 10px;font-weight:700;color:var(--txt);display:flex;align-items:center;gap:8px}
+  .catrow .ln{flex:1;height:1px;background:var(--bd-c,rgba(128,128,128,.2))}
+  .imgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .imgrid.avoid{filter:none}
+  .icell{position:relative;border-radius:var(--r-2);overflow:hidden;border:var(--bd);aspect-ratio:1}
+  .icell.avoid{outline:2px solid rgba(255,69,58,.5);outline-offset:-2px}
+  .icell img{width:100%;height:100%;object-fit:cover;display:block}
+  .icell .del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:6px;width:22px;height:22px;cursor:pointer;opacity:0;transition:opacity .1s}
+  .icell:hover .del{opacity:1}
+  .addbox{background:var(--surface);border:var(--bd);border-radius:var(--r-2);padding:14px;margin-bottom:18px}
+  .addbox .polrow{display:flex;gap:8px;margin-bottom:10px}
+  .addbox textarea,.addbox input[type=text],.addbox input[type=number]{width:100%;background:var(--surface-2);color:var(--txt);border:var(--bd);border-radius:var(--r-2);padding:8px 10px;font:inherit;box-sizing:border-box}
+  .addbox .amethod{margin-bottom:10px}
+  .amethod .lbl2{font-size:var(--fs-xs);color:var(--dim);margin-bottom:4px}
+  .refhdr{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .refhdr .ttl{font-size:var(--fs-lg);font-weight:700}
+  .dnabox{background:var(--surface-2);border:var(--bd);border-radius:var(--r-2);padding:14px;margin:14px 0;white-space:pre-wrap;font-size:var(--fs-data)}`;
+  document.head.appendChild(s);
+}
+async function renderContext(){
+  ctxCss();
+  $('#vTitle').textContent='Хранилище контекстов';
+  $('#vCrumb').textContent='графы памяти + визуальные референсы';
+  $('#vActions').innerHTML='';
+  const c=$('#content');c.classList.remove('wide');
+  c.innerHTML=`<div class="ctxtabs">
+    <div class="ctxtab ${ctxTab==='graphs'?'on':''}" onclick="ctxSwitch('graphs')">${icon('i-graph')} Графы памяти</div>
+    <div class="ctxtab ${ctxTab==='images'?'on':''}" onclick="ctxSwitch('images')">🎨 Изображения</div>
+  </div><div id="ctxBody"></div>`;
+  try{const ds=await api('/api/state');updateSidebar(ds);updatePulse(ds.health);}catch{}
+  if(route!=='context')return;
+  ctxTab==='graphs'?renderCtxGraphs():renderCtxImages();
+}
+function ctxSwitch(t){ctxTab=t;refsCur=null;renderContext();}
+async function renderCtxGraphs(){
+  const h=$('#ctxBody');if(!h)return;h.innerHTML='загрузка…';
+  let g={},z={},s={},k={};try{g=await api('/api/graph');}catch{}try{z=await api('/api/zotero');}catch{}try{s=await api('/api/sources');}catch{}try{k=await api('/api/capital');}catch{}
+  if(route!=='context'||ctxTab!=='graphs')return;
+  const card=(title,sub,metrics,openRoute,extHref)=>`<div class="addbox">
+    <div class="refhdr"><div><div class="ttl">${title}</div>
+      <div style="color:var(--dim);font-size:var(--fs-xs)">${sub}</div></div><span class="sp" style="flex:1"></span>
+      <button class="btn primary" onclick="go('${openRoute}')">${icon('i-graph')} Открыть</button>
+      <a class="btn" href="${extHref}" target="_blank" rel="noopener">${icon('i-ext')} Новая вкладка</a></div>
+    <div class="bcard-sub" style="display:flex;gap:16px;flex-wrap:wrap;color:var(--dim);font-size:var(--fs-xs)">
+      ${metrics.map(m=>`<span><b style="color:var(--txt)">${m[1]??'—'}</b> ${m[0]}</span>`).join('')}</div></div>`;
+  const seg=(cur,val,label,fn)=>`<div class="chip ${cur===val?'on':''}" onclick="${fn}('${val}')">${label}</div>`;
+  const searchPanel=`<div class="addbox" style="margin-bottom:14px">
+    <div class="refhdr"><div><div class="ttl">${icon('i-graph')} Гибридный поиск</div>
+      <div style="color:var(--dim);font-size:var(--fs-xs)">FTS (BM25) + вектор, слияние RRF — отдельно по каждому хранилищу</div></div></div>
+    <div class="refs-tools" style="margin-top:10px">
+      <input class="srch" id="ctxSQ" placeholder="запрос…" style="flex:1;min-width:200px"
+        value="${esc(ctxSQval)}" oninput="ctxSQval=this.value"
+        onkeydown="if(event.key==='Enter')runCtxSearch()">
+      <button class="btn primary" onclick="runCtxSearch()">${icon('i-run')} Искать</button></div>
+    <div class="refs-tools" style="margin-top:8px">
+      <span style="color:var(--dim);font-size:var(--fs-xs);align-self:center">хранилище:</span>
+      ${seg(ctxSStore,'obsidian','Obsidian','ctxSetStore')}
+      ${seg(ctxSStore,'zotero','Zotero','ctxSetStore')}
+      ${seg(ctxSStore,'sources','Источники','ctxSetStore')}
+      <span class="sp" style="width:14px"></span>
+      <span style="color:var(--dim);font-size:var(--fs-xs);align-self:center">режим:</span>
+      ${seg(ctxSMode,'hybrid','гибрид','ctxSetMode')}
+      ${seg(ctxSMode,'vector','вектор','ctxSetMode')}
+      ${seg(ctxSMode,'fts','FTS','ctxSetMode')}</div>
+    <div id="ctxSOut" style="margin-top:12px"></div></div>`;
+  h.innerHTML=searchPanel+
+    card('Граф связей · L4-память','семантический граф базы знаний Obsidian',
+      [['заметок',g.notes],['чанков',g.chunks],['связей',g.edges],['построен',g.built_at]],'graph','/graph')+
+    card('Библиотека · Zotero','векторная библиотека: книги + ссылки-источники, выделения + полный текст',
+      [['книг',z.book_count],['источников',z.books],['выделений',z.annotations],['чанков',z.chunks]],'zotero','/zotero/graph')+
+    card('База источников','единое поле: Zotero + собранное из сообществ/веба, раскраска по origin',
+      [['источников',s.total_books],['чанков',s.total_chunks],['связей',s.graph_edges],['построен',s.graph_built]],'sources','/sources/graph')+
+    card('Социальный капитал','люди, организации и связи между ними · карточки в «08 — Социальный капитал»',
+      [['контактов',k.contacts],['организаций',k.orgs],['связей',k.graph_edges],['пора написать',k.due],['построен',k.graph_built]],'capital','/capital/graph');
+}
+function ctxSetStore(v){ctxSStore=v;renderCtxGraphs();}
+function ctxSetMode(v){ctxSMode=v;renderCtxGraphs();}
+async function runCtxSearch(){
+  const qEl=document.getElementById('ctxSQ'),out=document.getElementById('ctxSOut');
+  if(!qEl||!out)return; const q=qEl.value.trim(); ctxSQval=qEl.value; if(!q){out.innerHTML='';return;}
+  const slow=ctxSMode!=='fts';
+  out.innerHTML=`<div style="color:var(--dim);font-size:var(--fs-xs)">ищу…${slow?' (vector/hybrid грузит модель, ~10–45с)':''}</div>`;
+  let d={};
+  try{d=await api(`/api/ctxsearch?store=${ctxSStore}&mode=${ctxSMode}&q=${encodeURIComponent(q)}&limit=8`);}
+  catch(e){out.innerHTML=`<div style="color:var(--bad)">ошибка: ${esc(e.message||'')}</div>`;return;}
+  const rs=d.results||[];
+  if(!rs.length){out.innerHTML=`<div style="color:var(--dim)">ничего не найдено${d.error?' · '+esc(d.error):''}</div>`;return;}
+  const badge=m=>`<span class="chip" style="pointer-events:none;font-size:10px;padding:1px 6px">${esc(m)}</span>`;
+  out.innerHTML=rs.map(r=>`<div class="addbox" style="margin:6px 0;padding:10px 12px">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <b style="font-size:var(--fs-xs)">${(r.score??0).toFixed(4)}</b> ${badge(r.method||'')}
+      <span style="font-size:var(--fs-sm)">${esc(r.title||r.who||r.path||'')}</span>
+      ${r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener" style="color:#57D9A3;font-size:11px">🔗</a>`:''}</div>
+    <div style="color:var(--dim);font-size:var(--fs-xs);margin-top:4px">${esc((r.snippet||'').slice(0,220))}</div>
+  </div>`).join('');
+}
+async function renderCtxImages(){
+  const h=$('#ctxBody');if(!h)return;
+  if(refsCur)return refsRenderBoard(h);
+  h.innerHTML='загрузка бордов…';
+  let m={};try{m=await api('/api/refs');}catch{}
+  if(route!=='context'||ctxTab!=='images'||refsCur)return;
+  const boards=(m.boards||[]).filter(b=>!refsCat||b.category===refsCat);
+  const cats=m.categories||[];
+  let html=`<div class="refs-tools">
+    <input class="srch" id="refSrch" placeholder="поиск борда…" oninput="refsFilter()">
+    <div class="chip ${!refsCat?'on':''}" onclick="refsSetCat('')">все</div>
+    ${cats.map(c=>`<div class="chip ${refsCat===c?'on':''}" onclick="refsSetCat('${esc(c)}')">${esc(c)}</div>`).join('')}
+    <span class="sp" style="flex:1"></span>
+    <button class="btn primary" onclick="refsToggleCreate()">${icon('i-run')} Новый борд</button></div>
+    <div id="refCreate" style="display:none"></div>`;
+  if(!boards.length){
+    html+=`<div class="empty" style="margin-top:20px">Бордов пока нет.<br>
+      Создай борд и наполни его референсами — «Нравится» (хочу так) и «Не нравится» (не делать как здесь).</div>`;
+  }else{
+    const byCat={};boards.forEach(b=>{(byCat[b.category]=byCat[b.category]||[]).push(b);});
+    for(const cat of Object.keys(byCat).sort()){
+      html+=`<div class="catrow">${esc(cat)}<span class="ln"></span></div><div class="bgrid" id="grid">`;
+      html+=byCat[cat].map(refsBoardCard).join('');
+      html+=`</div>`;
+    }
+  }
+  h.innerHTML=html;
+}
+function refsBoardCard(b){
+  const cov=b.cover?`style="background-image:url('/refs/img?path=${encodeURIComponent(b.cover)}')"`:'';
+  return `<div class="bcard" data-name="${esc(b.name.toLowerCase())}" onclick="refsOpen('${esc(b.slug)}')">
+    <div class="cov" ${cov}>${b.cover?'':'нет обложки'}</div>
+    <div class="meta"><div class="nm">${esc(b.name)}</div>
+    <div class="sub">
+      <span class="pill like">✅ ${b.counts.like}</span>
+      <span class="pill avoid">⛔ ${b.counts.avoid}</span>
+      ${b.has_dna?'<span class="pill dna">ДНК</span>':''}
+      ${(b.tags||[]).slice(0,2).map(t=>'#'+esc(t)).join(' ')}
+    </div></div></div>`;
+}
+function refsFilter(){const q=($('#refSrch').value||'').toLowerCase();
+  document.querySelectorAll('.bcard').forEach(el=>{el.style.display=el.dataset.name.includes(q)?'':'none';});}
+function refsSetCat(c){refsCat=c;renderCtxImages();}
+function refsToggleCreate(){
+  const el=$('#refCreate');if(!el)return;
+  if(el.style.display!=='none'){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML=`<div class="addbox">
+    <div class="amethod"><div class="lbl2">Название борда</div><input type="text" id="nbName" placeholder="напр. Dark SaaS дашборды"></div>
+    <div class="amethod"><div class="lbl2">Категория</div><input type="text" id="nbCat" placeholder="Web / Dashboards" value="${esc(refsCat||'')}"></div>
+    <div class="amethod"><div class="lbl2">Описание · теги (через запятую)</div><input type="text" id="nbDesc" placeholder="что за настроение…"><input type="text" id="nbTags" placeholder="dark, minimal, bold" style="margin-top:6px"></div>
+    <button class="btn primary" onclick="refsCreate(this)">${icon('i-run')} Создать</button></div>`;
+}
+async function refsCreate(btn){
+  const name=($('#nbName').value||'').trim();if(!name){toast('нужно имя');return;}
+  btn.disabled=true;
+  const body={name,category:$('#nbCat').value||'Разное',description:$('#nbDesc').value||'',tags:$('#nbTags').value||''};
+  let r;try{r=await api('/api/refs/board-create',{method:'POST',body:JSON.stringify(body)});}catch(e){r={ok:false,out:e.message};}
+  if(r.ok){toast('✓ борд создан');refsCur=r.slug;renderContext();}else{toast('✗ '+(r.out||'ошибка'));btn.disabled=false;}
+}
+function refsOpen(slug){refsCur=slug;renderContext();}
+function refsBack(){refsCur=null;renderContext();}
+async function refsRenderBoard(h){
+  h.innerHTML='загрузка борда…';
+  let m={};try{m=await api('/api/refs');}catch{}
+  const b=(m.boards||[]).find(x=>x.slug===refsCur);
+  if(route!=='context'||ctxTab!=='images'||refsCur!==(b&&b.slug))return;
+  if(!b){h.innerHTML='<div class="empty">Борд не найден.<br><button class="btn" onclick="refsBack()">← назад</button></div>';return;}
+  const gallery=(pol,imgs)=>imgs.length?`<div class="imgrid ${pol}">`+imgs.map(it=>`
+    <div class="icell ${pol==='avoid'?'avoid':''}">
+      <img loading="lazy" src="/refs/img?path=${encodeURIComponent(it.path)}" alt="">
+      <button class="del" title="удалить" onclick="refsDelImg('${esc(b.slug)}','${pol}','${esc(it.file)}')">×</button>
+    </div>`).join('')+`</div>`:'<div style="color:var(--dim);font-size:var(--fs-xs)">пусто</div>';
+  h.innerHTML=`
+    <div class="refhdr">
+      <button class="btn sm" onclick="refsBack()">← борды</button>
+      <div><div class="ttl">${esc(b.name)}</div>
+        <div style="color:var(--dim);font-size:var(--fs-xs)">${esc(b.category)} · ✅ ${b.counts.like} · ⛔ ${b.counts.avoid} ${(b.tags||[]).map(t=>'#'+esc(t)).join(' ')}</div>
+        ${b.description?`<div style="color:var(--dim);margin-top:4px">${esc(b.description)}</div>`:''}</div>
+      <span class="sp" style="flex:1"></span>
+      <button class="btn" onclick="refsDna('${esc(b.slug)}')">${icon('i-claude')} Запросить визуальное ДНК</button>
+      <button class="btn sm" onclick="refsDelBoard('${esc(b.slug)}')">${icon('i-trash')||'🗑'} удалить борд</button>
+    </div>
+    ${refsAddBox(b.slug)}
+    <div class="catrow">✅ Нравится — хочу так<span class="ln"></span></div>${gallery('like',b.images.like)}
+    <div class="catrow" style="margin-top:22px">⛔ Не нравится — не делать как здесь<span class="ln"></span></div>${gallery('avoid',b.images.avoid)}`;
+}
+function refsAddBox(slug){
+  return `<div class="addbox">
+    <div class="polrow">
+      <button class="chip ${refsPol==='like'?'on':''}" id="polLike" onclick="refsSetPol('like')">✅ в «Нравится»</button>
+      <button class="chip ${refsPol==='avoid'?'on':''}" id="polAvoid" onclick="refsSetPol('avoid')">⛔ в «Не нравится»</button>
+    </div>
+    <div class="amethod"><div class="lbl2">Ссылки на картинки (по одной в строке / через пробел)</div>
+      <textarea id="adUrls" rows="2" placeholder="https://…​.jpg"></textarea>
+      <button class="btn sm" style="margin-top:6px" onclick="refsSubUrls('${esc(slug)}',this)">${icon('i-run')} Скачать по ссылкам</button></div>
+    <div class="amethod"><div class="lbl2">Pinterest — публичный борд или пин (скачает пачкой)</div>
+      <input type="text" id="adPin" placeholder="https://www.pinterest.com/user/board/">
+      <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
+        <input type="number" id="adPinLim" value="30" min="1" max="100" style="width:80px" title="максимум картинок">
+        <button class="btn sm" onclick="refsSubPin('${esc(slug)}',this)">${icon('i-run')} Забрать из Pinterest</button></div></div>
+    <div class="amethod"><div class="lbl2">Загрузить файлы с компьютера</div>
+      <input type="file" id="adFiles" accept="image/*" multiple onchange="refsUpload('${esc(slug)}',this)"></div>
+  </div>`;
+}
+function refsSetPol(p){refsPol=p;const l=$('#polLike'),a=$('#polAvoid');if(l&&a){l.classList.toggle('on',p==='like');a.classList.toggle('on',p==='avoid');}}
+async function refsSubUrls(slug,btn){
+  const urls=($('#adUrls').value||'').trim();if(!urls){toast('вставь ссылки');return;}
+  btn.disabled=true;btn.textContent='…качаю';
+  let r;try{r=await api('/api/refs/add-url',{method:'POST',body:JSON.stringify({slug,polarity:refsPol,urls})});}catch(e){r={ok:false,out:e.message};}
+  toast(r.ok?`✓ добавлено ${r.added}`+(r.failed&&r.failed.length?`, ошибок ${r.failed.length}`:''):'✗ '+(r.out||'ошибка'));
+  renderContext();
+}
+async function refsSubPin(slug,btn){
+  const url=($('#adPin').value||'').trim();if(!url){toast('вставь ссылку Pinterest');return;}
+  btn.disabled=true;btn.textContent='…тяну пины';
+  const limit=parseInt($('#adPinLim').value||'30',10);
+  let r;try{r=await api('/api/refs/add-pinterest',{method:'POST',body:JSON.stringify({slug,polarity:refsPol,url,limit})});}catch(e){r={ok:false,out:e.message};}
+  toast(r.ok?`✓ из Pinterest: ${r.added} из ${r.found}`:'✗ '+(r.out||'ошибка'));
+  renderContext();
+}
+async function refsUpload(slug,input){
+  const files=[...input.files];if(!files.length)return;
+  toast(`загружаю ${files.length}…`);let ok=0;
+  for(const f of files){
+    const data=await new Promise(res=>{const rd=new FileReader();rd.onload=()=>res(rd.result);rd.readAsDataURL(f);});
+    try{const r=await api('/api/refs/add-file',{method:'POST',body:JSON.stringify({slug,polarity:refsPol,name:f.name,data})});if(r.ok)ok++;}catch{}
+  }
+  toast(`✓ загружено ${ok}/${files.length}`);renderContext();
+}
+async function refsDelImg(slug,pol,file){
+  try{await api('/api/refs/delete',{method:'POST',body:JSON.stringify({slug,polarity:pol,file})});}catch{}
+  renderContext();
+}
+async function refsDelBoard(slug){
+  if(!confirm('Удалить борд целиком со всеми картинками?'))return;
+  try{await api('/api/refs/delete',{method:'POST',body:JSON.stringify({slug})});}catch{}
+  refsBack();
+}
+async function refsDna(slug){
+  let r;try{r=await api('/api/refs/dna?slug='+encodeURIComponent(slug));}catch(e){r={};}
+  const prompt=r.prompt||('Проанализируй визуальный борд '+slug);
+  go('claude');
+  setTimeout(()=>{const ta=$('#ccInput');if(ta){ta.value=prompt;ta.focus();}
+    toast('промпт готов — выставь права (acceptEdits) и отправь');},60);
+}
+
+/* ════════════════ ЛОГ-МОДАЛ ════════════════ */
+async function showLog(id){$('#mTitle').textContent='log · '+id;$('#mBody').textContent='…';$('#modal').classList.add('on');
+  let r;try{r=await api('/api/log?job='+encodeURIComponent(id));}catch(e){r={log:'ошибка: '+e.message};}
+  $('#mBody').textContent=r.log||'(лог пуст)';}
+async function showSvcLog(name){$('#mTitle').textContent='log · '+name;$('#mBody').textContent='…';$('#modal').classList.add('on');
+  let r;try{r=await api('/api/log?service='+encodeURIComponent(name));}catch(e){r={log:'ошибка: '+e.message};}
+  $('#mBody').textContent=r.log||'(лог пуст)';}
+function closeModal(){$('#modal').classList.remove('on');}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+/* ════════════════ CLAUDE CODE ════════════════ */
+let ccSession=null,ccBusy=false,ccProject='',ccLeft='sessions';
+function renderClaude(){
+  $('#vTitle').textContent='Claude Code';$('#vCrumb').textContent='агент в каталоге проекта';$('#vActions').innerHTML='';
+  $('#content').innerHTML=`<div class="cc">
+    <div class="panel cc-side">
+      <div class="seg"><button id="segS" class="on" onclick="ccTab('sessions')">Мои сессии</button>
+        <button id="segA" onclick="ccTab('activity')">Через local-API</button></div>
+      <div class="cc-list" id="ccList"></div>
+      <div style="padding:9px 14px;border-top:1px solid var(--line-2)">
+        <button class="btn sm" style="width:100%" onclick="ccNew()">+ новая сессия</button></div>
+    </div>
+    <div class="panel cc-main">
+      <div class="h"><span class="t">Диалог</span><span class="sp"></span><span class="badge" id="ccSess">новая сессия</span></div>
+      <div class="transcript" id="transcript"><div class="hint">Работай с Claude Code прямо здесь — он запускается в каталоге проекта,
+        с инструментами и продолжением диалога. Выбери модель и уровень прав ниже.</div></div>
+      <div class="composer">
+        <div class="ctrls">
+          <select id="ccModel" aria-label="модель"><option value="sonnet">Sonnet</option><option value="opus">Opus</option><option value="haiku">Haiku</option></select>
+          <select id="ccPerm" aria-label="права" onchange="ccPermChange(this)">
+            <option value="plan">Plan · чтение</option><option value="acceptEdits">Авто-правки</option><option value="full">Полный доступ</option></select>
+          <span class="perm-tag" id="ccPermTag"></span>
+          <span class="cwd" id="ccCwd"></span>
+        </div>
+        <div class="inrow"><textarea id="ccInput" rows="2" placeholder="Спроси или поручи задачу… (Enter — отправить)"></textarea>
+          <button class="send" id="ccSend" onclick="ccSend()" aria-label="отправить">${icon('i-run')}</button></div>
+      </div>
+    </div></div>`;
+  $('#ccInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ccSend();}});
+  loadList();
+}
+function ccPermChange(sel){sel.classList.toggle('perm-full',sel.value==='full');
+  $('#ccPermTag').textContent=sel.value==='full'?'⚠ деструктивно':'';}
+function ccTab(t){ccLeft=t;$('#segS').classList.toggle('on',t==='sessions');$('#segA').classList.toggle('on',t==='activity');loadList();}
+async function loadList(){
+  if(ccLeft==='sessions'){
+    let d;try{d=await api('/api/claude/sessions');}catch{d={sessions:[],project:''};}
+    ccProject=d.project;$('#ccCwd').textContent='cwd: '+(d.project||'').replace(/.*\//,'…/');
+    $('#ccList').innerHTML=d.sessions.length?d.sessions.map(s=>
+      `<div class="sess ${s.id===ccSession?'on':''}" role="button" tabindex="0" onclick="openSession('${jsq(s.id)}','${jsq(s.model)}')">
+        <div class="st"><span>${esc(s.created)}</span>·<span>${esc(s.model)}</span></div>
+        <div class="sx">${esc(s.title)}</div></div>`).join(''):'<div class="empty">Сессий пока нет — напиши первое сообщение.</div>';
+  }else{
+    let d;try{d=await api('/api/localapi/activity');}catch{d={activity:[]};}
+    $('#ccList').innerHTML=d.activity.length?d.activity.map(apiRow).join(''):
+      '<div class="empty">Тихо — других вызовов через local-API нет. Сюда попадают сессии, запущенные крон/ботами через /tmp/claude_api.sock.</div>';
+  }
+}
+function ccNew(){ccSession=null;$('#ccSess').textContent='новая сессия';
+  $('#transcript').innerHTML='<div class="hint">Новая сессия. Claude Code запустится в каталоге проекта.</div>';loadList();}
+async function openSession(id,model){ccSession=id;$('#ccSess').textContent='resume · '+id.slice(0,8);
+  if(model&&$('#ccModel'))$('#ccModel').value=model;loadList();
+  $('#transcript').innerHTML='<div class="hint">загрузка истории…</div>';
+  let d;try{d=await api('/api/claude/session/'+id);}catch{d={messages:[]};}
+  const t=$('#transcript');t.innerHTML='';
+  if(!d.messages.length){t.innerHTML='<div class="hint">История пуста или недоступна. Продолжай — контекст в самой сессии сохранён.</div>';return;}
+  for(const m of d.messages)renderMsg(m);
+  addEl('final','▲ история выше · продолжай диалог ниже');t.scrollTop=t.scrollHeight;
+}
+function renderMsg(m){
+  if(m.kind==='text')addEl('msg '+(m.role==='user'?'u':'a'),'<div class="b">'+esc(m.text)+'</div>');
+  else if(m.kind==='tool')addEl('tool',icon('i-claude')+' <b>'+esc(m.name)+'</b> <span class="ti">'+esc(toolHint(m.input))+'</span>');
+  else if(m.kind==='result')addEl('tool res','← '+esc((m.text||'').slice(0,120)));
+}
+function addEl(cls,html){const d=document.createElement('div');d.className=cls;d.innerHTML=html;
+  const t=$('#transcript');t.appendChild(d);t.scrollTop=t.scrollHeight;return d;}
+function toolHint(i){i=i||{};return (i.command||i.file_path||i.path||i.pattern||i.query||Object.keys(i).slice(0,3).join(', ')||'').toString().slice(0,70);}
+
+async function ccSend(){
+  if(ccBusy)return;const ta=$('#ccInput');const prompt=ta.value.trim();if(!prompt)return;
+  const model=$('#ccModel').value,permission=$('#ccPerm').value;
+  ta.value='';ccBusy=true;$('#ccSend').disabled=true;
+  const t=$('#transcript');if(t.querySelector('.hint'))t.innerHTML='';
+  addEl('msg u','<div class="b">'+esc(prompt)+'</div>');
+  const aBody=addEl('msg a','<div class="b"><span class="typing"></span></div>').querySelector('.b');let acc='';
+  let res;try{res=await fetch('/api/claude/send',{method:'POST',
+    body:JSON.stringify({prompt,session_id:ccSession,model,permission,cwd:ccProject})});}
+  catch(e){aBody.innerHTML='<span class="cerr">сеть: '+esc(e.message)+'</span>';return done();}
+  const reader=res.body.getReader(),dec=new TextDecoder();let buf='';
+  for(;;){const{done:fin,value}=await reader.read();if(fin)break;buf+=dec.decode(value,{stream:true});
+    let nl;while((nl=buf.indexOf('\n'))>=0){const line=buf.slice(0,nl).trim();buf=buf.slice(nl+1);
+      if(line){let ev;try{ev=JSON.parse(line);}catch{continue;}handle(ev);}}}
+  done();
+  function handle(ev){const ty=ev.type;
+    if(ty==='_meta'){if(ev.is_new){ccSession=ev.session_id;$('#ccSess').textContent='сессия '+ev.session_id.slice(0,8);loadList();}
+      if(ev.permission==='full')toast('полный доступ к инструментам');}
+    else if(ty==='assistant'&&ev.message){for(const c of ev.message.content||[]){
+      if(c.type==='text'&&c.text){acc+=c.text;aBody.textContent=acc;}
+      else if(c.type==='tool_use')addEl('tool',icon('i-claude')+' <b>'+esc(c.name)+'</b> <span class="ti">'+esc(toolHint(c.input))+'</span>');}
+      t.scrollTop=1e9;}
+    else if(ty==='result'){const ms=ev.duration_ms?(ev.duration_ms/1000).toFixed(1)+'s':'';
+      if(ev.result&&!acc){acc=ev.result;aBody.textContent=acc;}
+      addEl('final','✓ готово'+(ms?' · '+ms:'')+(ev.num_turns?' · '+ev.num_turns+' ходов':'')+(ev.total_cost_usd?' · $'+ev.total_cost_usd.toFixed(4):''));}
+    else if(ty==='_error')addEl('cerr','✗ '+esc(ev.error));}
+  function done(){ccBusy=false;$('#ccSend').disabled=false;
+    if(aBody.querySelector('.typing'))aBody.innerHTML='<span style="color:var(--dim)">(нет текстового ответа)</span>';$('#ccInput').focus();}
+}
+
+/* ════════════════ РАДАР · инфополе (инструмент) ════════════════ */
+let radarState={q:'',kind:'',source:'',since:0,offset:0};
+let radarOv=null,radarHasMore=false,radarTotal=0;
+let radarAskSession=null,radarAskBusy=false;
+const PERIODS=[[0,'всё время'],[1,'24 часа'],[7,'7 дней'],[30,'30 дней']];
+async function renderRadar(){
+  $('#vTitle').textContent='Радар · инфополе';$('#vCrumb').textContent='просмотр и исследование инфополя · источник дайджестов';
+  $('#vActions').innerHTML=`<button class="btn" onclick="go('admin:cron')">${icon('i-add')} крон-задачи</button>`;
+  $('#content').classList.remove('wide');$('#content').innerHTML='<div class="empty">загрузка инфополя…</div>';
+  let d;try{d=await api('/api/radar');}catch{d={};}
+  if(route!=='radar')return;
+  try{const ds=await api('/api/state');updateSidebar(ds);updatePulse(ds.health);}catch{}
+  if(route!=='radar')return;
+  if(!d.exists){$('#content').innerHTML='<div class="empty">База радара (radar.db) ещё не создана.<br>Запустится после первого прогона крон-задачи news-ingest.</div>';return;}
+  radarOv=d;radarState={q:'',kind:'',source:'',since:0,offset:0};
+  const rss=(d.by_kind.find(x=>x.k==='rss')||{}).n||0,tg=(d.by_kind.find(x=>x.k==='telegram')||{}).n||0;
+  // ── Зона A · пульс ──
+  const kpis=`<div class="kpis">
+    <div class="kpi"><div class="k tip" data-tip="Всего материалов (новостей и постов) в базе радара radar.db.">Всего в базе</div><div class="v">${d.total}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Сколько новых материалов прилетело за последние 24 часа — живой ли поток.">За 24 часа</div><div class="v ${d.today?'ok':''}">+${d.today}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Материалов за последние 7 дней.">За неделю</div><div class="v">+${d.week}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Сколько разных источников (каналов и лент) питает базу.">Источников</div><div class="v">${d.by_source.length}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Доля RSS-лент и Telegram-каналов в базе. RSS-ленты обычно низкочастотные, телеграм-каналы постят много — отсюда перекос.">RSS / Telegram</div><div class="v" style="font-size:16px">${rss}<small>/</small>${tg}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Когда радар в последний раз дописывал материалы в базу.">Обновлён</div><div class="v" style="font-size:15px">${esc(d.updated)}</div></div></div>`;
+  // ── Зона B · компактная панель поиска и фильтров ──
+  const srcOpts=`<option value="">все источники</option>`+d.sources_list.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  const perOpts=PERIODS.map(p=>`<option value="${p[0]}">${esc(p[1])}</option>`).join('');
+  const SEL=`background:var(--surface-2);color:var(--txt);border:var(--bd);border-radius:var(--r-2);padding:7px 10px;font:inherit;font-size:var(--fs-sm);font-weight:500`;
+  const controls=`<div class="panel" id="radarControls"><div class="h"><span class="t">Поиск и фильтры</span><span class="sp"></span>
+    <span class="badge tip" data-tip="Текстовый поиск по заголовку и тексту. Семантику ищи в карточке через «похожие».">текст · фильтры меняют категории ниже</span></div>
+    <div style="padding:var(--sp-3);display:flex;flex-direction:column;gap:var(--sp-3)">
+      <div style="display:flex;gap:var(--sp-2)"><input id="rQ" type="text" placeholder="Поиск по заголовку и тексту… (Enter)" style="flex:1;${SEL};padding:9px 12px;font-size:var(--fs-base)">
+        <button class="btn primary" onclick="radarSearch(true)">${icon('i-radar')} найти</button></div>
+      <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;align-items:center">
+        <select id="rKind" style="${SEL}" onchange="radarApply()"><option value="">все типы</option><option value="rss">RSS-ленты</option><option value="telegram">Telegram</option></select>
+        <select id="rSince" style="${SEL}" onchange="radarApply()">${perOpts}</select>
+        <select id="rSource" style="${SEL};max-width:240px" onchange="radarApply()">${srcOpts}</select>
+        <button class="btn sm" onclick="radarReset()">сброс</button>
+        <span id="radarChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-left:auto"></span></div>
+    </div></div>`;
+  // ── Окно ИИ · спросить про новости (RAG по базе через Claude Code) ──
+  const ai=`<div class="panel"><div class="h">${icon('i-claude')}<span class="t">Спросить нейронку про новости</span><span class="sp"></span>
+    <span class="badge tip" data-tip="Вопрос уходит в Claude Code вместе с подходящими материалами из базы радара. Ответ — только по этим материалам, со ссылками [N].">Claude Code · RAG по базе</span></div>
+    <div class="transcript" id="raTranscript" style="height:340px;min-height:120px;resize:vertical">
+      <div class="hint">Спроси про новости в базе — например «что нового по AI за неделю?», «суммируй посты про Linux», «какие тренды по железу?». Ответ соберётся из подходящих материалов радара со ссылками.<br><span style="color:var(--dim);font-size:var(--fs-xs)">Окно тянется за нижний край — можно увеличить.</span></div></div>
+    <div class="composer">
+      <div class="ctrls">
+        <select id="raModel" aria-label="модель"><option value="sonnet">Sonnet</option><option value="haiku">Haiku</option><option value="opus">Opus</option></select>
+        <label style="display:flex;align-items:center;gap:6px;font-size:var(--fs-sm);color:var(--txt-2)" class="tip" data-tip="Брать материалы только из текущего среза (тип/источник/период сверху). Иначе — по всей базе.">
+          <input type="checkbox" id="raFilter"> учитывать текущий фильтр</label>
+        <button class="btn sm" style="margin-left:auto" onclick="radarAskNew()">+ новый диалог</button></div>
+      <div class="inrow"><textarea id="raInput" rows="2" placeholder="Вопрос про новости в базе… (Enter — отправить)"></textarea>
+        <button class="send" id="raSend" onclick="radarAskSend()" aria-label="спросить">${icon('i-run')}</button></div>
+    </div></div>`;
+  // ── Зона D · поток ──
+  const stream=`<div class="panel"><div class="h"><span class="t">Материалы</span><span class="sp"></span><span class="badge" id="rCount">…</span></div>
+    <div class="matlist" id="radarResults"><div class="empty">загрузка…</div></div>
+    <div id="radarMore" style="padding:var(--sp-3);text-align:center"></div></div>`;
+  radarAskSession=null;
+  $('#content').innerHTML=`<div class="svccap">${icon('i-radar')} Радар тянет новости и посты из лент и Telegram-каналов в свою базу и векторизует их. Рабочий стол отбора: ищи, фильтруй (категории/источники/темы ниже подстраиваются под фильтр), открывай материалы целиком, находи похожие и спрашивай нейронку про базу.</div>`+
+    kpis+controls+ai+`<div id="radarFacets"></div>`+stream+`<div id="radarSources"></div>`;
+  $('#rQ').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();radarSearch(true);}});
+  $('#raInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();radarAskSend();}});
+  initRaResize();
+  radarSearch(true);
+  loadRadarSources();
+}
+// окно ИИ тянется по высоте — запоминаем выбранный размер между визитами
+function initRaResize(){
+  const el=$('#raTranscript');if(!el)return;
+  try{const h=localStorage.getItem('mc-ra-h');if(h)el.style.height=h;}catch(e){}
+  if(window.ResizeObserver){
+    const ro=new ResizeObserver(()=>{try{if(el.style.height)localStorage.setItem('mc-ra-h',el.style.height);}catch(e){}});
+    ro.observe(el);
+  }
+}
+// окно ИИ · стрим ответа Claude по материалам базы
+function addRaEl(cls,html){const d=document.createElement('div');d.className=cls;d.innerHTML=html;
+  const t=$('#raTranscript');t.appendChild(d);t.scrollTop=t.scrollHeight;return d;}
+function radarAskNew(){radarAskSession=null;const t=$('#raTranscript');
+  if(t)t.innerHTML='<div class="hint">Новый диалог. Спроси про новости в базе — соберу ответ по подходящим материалам.</div>';}
+async function radarAskSend(){
+  if(radarAskBusy)return;const ta=$('#raInput');const q=ta.value.trim();if(!q)return;
+  ta.value='';radarAskBusy=true;$('#raSend').disabled=true;
+  const t=$('#raTranscript');if(t.querySelector('.hint'))t.innerHTML='';
+  addRaEl('msg u','<div class="b">'+esc(q)+'</div>');
+  const aBody=addRaEl('msg a','<div class="b"><span class="typing"></span></div>').querySelector('.b');let acc='';
+  const body={question:q,session_id:radarAskSession,model:($('#raModel')?$('#raModel').value:'sonnet')};
+  if($('#raFilter')&&$('#raFilter').checked){body.kind=radarState.kind;body.source=radarState.source;body.since=radarState.since;}
+  let res;try{res=await fetch('/api/radar/ask',{method:'POST',body:JSON.stringify(body)});}
+  catch(e){aBody.innerHTML='<span class="cerr">сеть: '+esc(e.message)+'</span>';return raDone();}
+  const reader=res.body.getReader(),dec=new TextDecoder();let buf='';
+  for(;;){const{done:fin,value}=await reader.read();if(fin)break;buf+=dec.decode(value,{stream:true});
+    let nl;while((nl=buf.indexOf('\n'))>=0){const line=buf.slice(0,nl).trim();buf=buf.slice(nl+1);
+      if(line){let ev;try{ev=JSON.parse(line);}catch{continue;}raHandle(ev);}}}
+  raDone();
+  function raHandle(ev){const ty=ev.type;
+    if(ty==='_radar')addRaEl('final','📊 собрано по '+ev.materials+' материалам из базы');
+    else if(ty==='_meta'){if(ev.is_new)radarAskSession=ev.session_id;}
+    else if(ty==='assistant'&&ev.message){for(const c of ev.message.content||[]){
+      if(c.type==='text'&&c.text){acc+=c.text;aBody.textContent=acc;}}t.scrollTop=1e9;}
+    else if(ty==='result'){const ms=ev.duration_ms?(ev.duration_ms/1000).toFixed(1)+'s':'';
+      if(ev.result&&!acc){acc=ev.result;aBody.textContent=acc;}
+      if(ms)addRaEl('final','✓ готово · '+ms);}
+    else if(ty==='_error')addRaEl('cerr','✗ '+esc(ev.error));}
+  function raDone(){radarAskBusy=false;$('#raSend').disabled=false;
+    if(aBody.querySelector('.typing'))aBody.innerHTML='<span style="color:var(--dim)">(нет ответа)</span>';$('#raInput').focus();}
+}
+// Зона C · категории/источники/темы — динамические, под текущий фильтр
+function renderRadarFacets(f){
+  const box=$('#radarFacets');if(!box)return;
+  const maxT=Math.max(1,...f.timeline.map(x=>x.n));
+  const timeline=`<div class="panel"><div class="h"><span class="t">Поток по дням</span><span class="sp"></span><span class="badge tip" data-tip="Материалов в день за 30 дней в пределах текущего фильтра.">${f.matched} в срезе</span></div>
+    <div style="display:flex;align-items:flex-end;gap:2px;height:84px;padding:var(--sp-3);overflow-x:auto">
+      ${f.timeline.map(x=>`<div title="${esc(x.d)}: ${x.n}" style="flex:1;min-width:5px;height:${Math.max(3,Math.round(x.n/maxT*72))}px;background:var(--accent);opacity:.55;border-radius:2px 2px 0 0"></div>`).join('')||'<div class="empty">Нет данных за период.</div>'}</div></div>`;
+  const maxS=Math.max(1,...f.by_source.map(x=>x.n));
+  const sources=`<div class="panel"><div class="h"><span class="t">Источники в срезе</span><span class="sp"></span><span class="badge tip" data-tip="Клик = фильтр по источнику. «N назад» — когда источник в последний раз присылал; красным — замолчал >3 дней.">${f.by_source.length} · клик = фильтр</span></div>
+    <div class="barlist">${f.by_source.length?f.by_source.map(x=>srcBar(x,maxS)).join(''):'<div class="empty">Нет источников в срезе.</div>'}</div></div>`;
+  const kindRu={rss:'RSS-ленты',telegram:'Telegram'};
+  const maxK=Math.max(1,...f.by_kind.map(x=>x.n));
+  const kinds=`<div class="panel"><div class="h"><span class="t">По типу</span><span class="sp"></span><span class="badge tip" data-tip="Клик = фильтр по типу источника.">клик = фильтр</span></div>
+    <div class="barlist">${f.by_kind.length?f.by_kind.map(x=>`<div class="barrow clickrow" onclick="radarPickKind('${jsq(x.k)}')"><span class="nm">${esc(kindRu[x.k]||x.k)}</span><span class="track"><span class="fill" style="width:${Math.round(x.n/maxK*100)}%"></span></span><span class="n">${x.n}</span></div>`).join(''):'<div class="empty">—</div>'}</div></div>`;
+  const topics=f.topics.length?`<div class="panel"><div class="h"><span class="t">Темы среза</span><span class="sp"></span><span class="badge tip" data-tip="Частые слова в заголовках текущего среза. Клик = добавить в поиск.">клик = поиск</span></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;padding:var(--sp-3)">${f.topics.map(t=>`<span class="pill clickrow" onclick="radarTopic('${jsq(t.k)}')">${esc(t.k)} <span style="color:var(--dim)">${t.n}</span></span>`).join('')}</div></div>`:'';
+  box.innerHTML=`<div class="grid2">${timeline}${kinds}</div><div class="grid2">${sources}${topics||'<div></div>'}</div>`;
+}
+function bar(name,n,max){return `<div class="barrow"><span class="nm" title="${esc(name)}">${esc(name)}</span>
+  <span class="track"><span class="fill" style="width:${Math.round(n/max*100)}%"></span></span><span class="n">${n}</span></div>`;}
+function srcBar(x,max){return `<div class="barrow clickrow" onclick="radarPickSource('${jsq(x.k)}')" title="фильтровать: ${esc(x.k)}">
+  <span class="nm">${esc(x.k)}</span><span class="track"><span class="fill" style="width:${Math.round(x.n/max*100)}%"></span></span>
+  <span class="n">${x.n}</span><span style="font-family:var(--mono);font-size:var(--fs-xs);min-width:62px;text-align:right;color:${x.stale?'var(--err)':'var(--dim)'}">${esc(x.ago)}</span></div>`;}
+function radarItemRow(m){return `<div class="matrow clickrow" onclick="openRadarItem(${m.id})" title="открыть материал">
+  <span class="src" title="${esc(m.source)}"><span class="pill" style="padding:0 5px">${m.kind==='rss'?'rss':'tg'}</span> ${esc(m.source)}</span>
+  <span class="ti">${esc(m.title)}</span><span class="tm">${esc(m.ts)}</span></div>`;}
+// фильтры
+function radarApply(){radarState.kind=$('#rKind').value;radarState.source=$('#rSource').value;
+  radarState.since=parseInt($('#rSince').value)||0;radarSearch(true);}
+function radarPickSource(s){radarState.source=(radarState.source===s?'':s);if($('#rSource'))$('#rSource').value=radarState.source;radarSearch(true);}
+function radarPickKind(k){radarState.kind=(radarState.kind===k?'':k);if($('#rKind'))$('#rKind').value=radarState.kind;radarSearch(true);}
+function radarTopic(t){radarState.q=t;if($('#rQ'))$('#rQ').value=t;radarSearch(true);}
+function radarChips(){
+  const box=$('#radarChips');if(!box)return;const c=[];
+  if(radarState.q)c.push(['поиск: '+radarState.q,"radarState.q='';$('#rQ').value='';radarSearch(true)"]);
+  if(radarState.kind)c.push(['тип: '+radarState.kind,"radarState.kind='';$('#rKind').value='';radarSearch(true)"]);
+  if(radarState.source)c.push(['источник: '+radarState.source,"radarState.source='';$('#rSource').value='';radarSearch(true)"]);
+  if(radarState.since)c.push(['период: '+(PERIODS.find(p=>p[0]===radarState.since)||[,''])[1],"radarState.since=0;$('#rSince').value='0';radarSearch(true)"]);
+  box.innerHTML=c.map(x=>`<span class="pill clickrow" onclick="${x[1]}">${esc(x[0])} ✕</span>`).join('')+
+    (c.length>1?`<span class="pill clickrow" onclick="radarReset()" style="color:var(--err)">сбросить всё ✕</span>`:'');
+}
+function radarReset(){radarState={q:'',kind:'',source:'',since:0,offset:0};
+  if($('#rQ'))$('#rQ').value='';if($('#rKind'))$('#rKind').value='';if($('#rSource'))$('#rSource').value='';if($('#rSince'))$('#rSince').value='0';
+  radarSearch(true);}
+function radarQS(){return `q=${encodeURIComponent(radarState.q)}&kind=${radarState.kind}&source=${encodeURIComponent(radarState.source)}&since=${radarState.since}&offset=${radarState.offset}`;}
+async function radarSearch(reset){
+  if(reset)radarState.offset=0;
+  if($('#rQ'))radarState.q=$('#rQ').value.trim();
+  radarChips();
+  const list=$('#radarResults');if(!list)return;
+  if(reset){list.innerHTML='<div class="empty">ищу…</div>';
+    api('/api/radar/facets?'+radarQS()).then(f=>{if(route==='radar'&&f&&f.by_kind)renderRadarFacets(f);}).catch(()=>{});}
+  let d;try{d=await api('/api/radar/search?'+radarQS());}catch{d={items:[],total:0};}
+  if(route!=='radar')return;
+  radarHasMore=d.has_more;radarTotal=d.total;
+  if($('#rCount'))$('#rCount').textContent=d.total+' '+plural(d.total,'материал','материала','материалов');
+  if(!d.items.length){list.innerHTML=`<div class="empty">Ничего не найдено по текущему срезу.${(radarState.q||radarState.kind||radarState.source||radarState.since)?'<div class="act-line"><button class="btn sm" onclick="radarReset()">сбросить фильтры</button></div>':''}</div>`;
+    $('#radarMore').innerHTML='';return;}
+  const html=d.items.map(radarItemRow).join('');
+  if(reset)list.innerHTML=html;else list.insertAdjacentHTML('beforeend',html);
+  $('#radarMore').innerHTML=radarHasMore?`<button class="btn sm" onclick="radarMore()">показать ещё (${radarTotal-radarState.offset-d.items.length} осталось)</button>`:
+    (d.total>50?'<span class="hint-i" style="color:var(--dim)">— всё показано —</span>':'');
+}
+async function radarMore(){radarState.offset+=50;await radarSearch(false);}
+
+// карточка материала + похожие
+async function openRadarItem(id){
+  $('#mTitle').textContent='материал #'+id;$('#mBody').innerHTML='<div class="empty">загрузка…</div>';$('#modal').classList.add('on');
+  let d;try{d=await api('/api/radar/item?id='+id);}catch{d={found:false};}
+  if(!d.found){$('#mBody').innerHTML='<div class="empty">Материал не найден.</div>';return;}
+  $('#mTitle').textContent=(d.kind==='rss'?'RSS':'TG')+' · '+d.source;
+  $('#mBody').innerHTML=`<div style="padding:2px 2px 8px">
+    <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap"><span class="pill">${esc(d.kind)}</span><span class="pill">${esc(d.source)}</span>
+      <span class="pill tip" data-tip="Когда материал опубликован у источника.">📅 ${esc(d.ts)}</span><span class="pill tip" data-tip="Когда радар забрал материал в базу.">⤓ ${esc(d.fetched)}</span></div>
+    <div style="font-size:15px;font-weight:650;line-height:1.4;margin-bottom:10px">${esc(d.title)}</div>
+    <div style="white-space:pre-wrap;line-height:1.6;font-size:var(--fs-base);color:var(--txt-2);max-height:46vh;overflow:auto">${esc(d.text)}</div>
+    <div class="act-line" style="margin-top:14px;display:flex;gap:var(--sp-2);flex-wrap:wrap">
+      ${d.url?`<a class="btn primary" href="${esc(d.url)}" target="_blank" rel="noopener">${icon('i-ext')} открыть оригинал</a>`:''}
+      <button class="btn" onclick="radarSimilarFor(${id})">${icon('i-graph')} похожие материалы</button></div>
+    <div id="radarSimBox"></div></div>`;
+}
+async function radarSimilarFor(id){
+  const box=$('#radarSimBox');if(!box)return;box.innerHTML='<div class="empty">ищу похожие по смыслу…</div>';
+  let d;try{d=await api('/api/radar/similar?id='+id);}catch{d={items:[]};}
+  if(!d.items||!d.items.length){box.innerHTML='<div class="empty">Похожих не нашлось'+(d.error?' ('+esc(d.error)+')':'')+'.</div>';return;}
+  box.innerHTML=`<div class="panel" style="margin-top:14px"><div class="h"><span class="t">Похожие по смыслу</span><span class="sp"></span><span class="badge tip" data-tip="Ближайшие материалы по векторному эмбеддингу (косинусная близость). Выше число — ближе по смыслу.">эмбеддинги</span></div>
+    <div class="matlist">${d.items.map(m=>`<div class="matrow clickrow" onclick="openRadarItem(${m.id})"><span class="src">${esc(m.source)}</span><span class="ti">${esc(m.title)}</span><span class="tm">${m.score}</span></div>`).join('')}</div></div>`;
+}
+
+// ── Управление источниками парсинга (sources.json) ──
+let radarSrcState={max:15,rss:[],tg:[]};
+async function loadRadarSources(){
+  const box=$('#radarSources');if(!box)return;
+  let s;try{s=await api('/api/radar/sources');}catch{s=null;}
+  if(route!=='radar'||!$('#radarSources'))return;
+  if(!s){$('#radarSources').innerHTML='';return;}
+  radarSrcState={max:s.max_per_source,full:s.fetch_full!==false,rss:s.rss.slice(),tg:s.telegram.slice()};
+  renderRadarSources();
+}
+function renderRadarSources(){
+  const box=$('#radarSources');if(!box)return;
+  const rssRows=radarSrcState.rss.map(r=>srcEditRow('rss',r.name,r.url)).join('');
+  const tgRows=radarSrcState.tg.map(c=>srcEditRow('tg',c.name,c.chat)).join('');
+  box.innerHTML=`<div class="panel"><div class="h">${icon('i-add')}<span class="t">Источники парсинга</span><span class="sp"></span>
+    <span class="badge tip" data-tip="Радар обходит эти источники по расписанию (крон news-ingest). Добавляй свои RSS-ссылки и Telegram-каналы. Сохранение пишет sources.json — применится при следующем прогоне.">конфиг радара</span></div>
+    <div class="form">
+      <div class="fld" style="max-width:280px"><label>Лимит на источник за прогон <span class="hint-i">max_per_source · больше = больше постов с активных лент</span></label>
+        <input id="rsMax" type="number" value="${radarSrcState.max}" min="1" max="200"></div>
+      <div class="set-row" style="padding:2px 0"><span>Парсить полный текст по ссылке
+        <span class="hint-i" style="color:var(--dim);font-size:var(--fs-xs)">— радар перейдёт по ссылке RSS-материала и вытащит всю статью, а не короткий анонс</span></span>
+        <span class="sp"></span><button class="toggle ${radarSrcState.full?'on':''}" id="rsFull" onclick="this.classList.toggle('on')" aria-label="полный текст"></button></div>
+      <div class="fld"><label>RSS-ленты <span class="hint-i">название + ссылка на rss</span></label>
+        <div id="rsRss">${rssRows||'<div class="hint-i" style="color:var(--dim)">пока пусто</div>'}</div>
+        <button class="btn sm" style="width:max-content;margin-top:6px" onclick="addRadarSrc('rss')">${icon('i-add')} добавить RSS</button></div>
+      <div class="fld"><label>Telegram-каналы <span class="hint-i">название + @username или числовой id</span></label>
+        <div id="rsTg">${tgRows||'<div class="hint-i" style="color:var(--dim)">пока пусто</div>'}</div>
+        <button class="btn sm" style="width:max-content;margin-top:6px" onclick="addRadarSrc('tg')">${icon('i-add')} добавить канал</button></div>
+      <div class="actions"><button class="btn primary" onclick="saveRadarSources(this)">${icon('i-save')} сохранить источники</button>
+        <span class="hint-i" style="color:var(--dim)">применится при следующем прогоне news-ingest (можно прогнать вручную в Конструкторе задач)</span></div>
+    </div></div>`;
+}
+function srcEditRow(kind,name,val){
+  const ph=kind==='rss'?'https://…/rss':'@username или id';
+  return `<div class="${kind}-row" style="display:flex;gap:6px;margin-bottom:6px">
+    <input type="text" class="src-name" placeholder="название" value="${esc(name||'')}" style="flex:1">
+    <input type="text" class="src-val" placeholder="${ph}" value="${esc(val||'')}" style="flex:2">
+    <button class="btn sm danger" onclick="this.parentNode.remove()" title="убрать">${icon('i-trash')}</button></div>`;
+}
+function addRadarSrc(kind){
+  const cont=kind==='rss'?$('#rsRss'):$('#rsTg');if(!cont)return;
+  if(cont.querySelector('.hint-i'))cont.innerHTML='';
+  cont.insertAdjacentHTML('beforeend',srcEditRow(kind,'',''));
+}
+async function saveRadarSources(btn){
+  const collect=sel=>[...document.querySelectorAll(sel)].map(row=>({
+    name:row.querySelector('.src-name').value.trim(),
+    val:row.querySelector('.src-val').value.trim()})).filter(x=>x.val);
+  const rss=collect('#rsRss .rss-row').map(x=>({name:x.name,url:x.val}));
+  const tg=collect('#rsTg .tg-row').map(x=>({name:x.name,chat:x.val}));
+  if(!rss.length&&!tg.length){toast('✗ добавь хотя бы один источник');return;}
+  const body={max_per_source:parseInt($('#rsMax').value)||15,fetch_full:$('#rsFull').classList.contains('on'),rss,telegram:tg};
+  btn.disabled=true;const old=btn.innerHTML;btn.innerHTML='…сохраняю';
+  let r;try{r=await api('/api/radar/sources/save',{method:'POST',body:JSON.stringify(body)});}catch(e){r={ok:false,out:e.message};}
+  btn.disabled=false;btn.innerHTML=old;toast(r.ok?'✓ '+r.out:'✗ '+r.out);
+  if(r.ok)loadRadarSources();
+}
+
+/* ════════════════ АДМИН-ПАНЕЛЬ ════════════════ */
+async function renderAdmin(which){
+  const meta=ADMIN.find(a=>a.id===which)||{label:which};
+  $('#vTitle').textContent=meta.label;$('#vCrumb').textContent='админ-панель · управление сервисом';
+  $('#vActions').innerHTML='';$('#content').classList.remove('wide');
+  try{const ds=await api('/api/state');updateSidebar(ds);updatePulse(ds.health);}catch{}
+  if(route!=='admin:'+which)return;
+  if(which==='cron')return renderCronAdmin();
+  if(which==='blog')return renderBlogAdmin();
+  if(which==='sources')return renderSourcesAdmin();
+  if(which==='blogbase')return renderBlogBaseAdmin();
+  if(which==='psych')return renderPsychAdmin();
+  if(which==='hh')return renderHhAdmin();
+}
+
+// ── Источники · база (разбивка по origin) ──
+const ORIGIN_RU={zotero:'Zotero (книги)',community:'Сообщества',web:'Веб',blog:'Блог',manual:'Вручную'};
+async function renderSourcesAdmin(){
+  $('#content').innerHTML='<div class="empty">загрузка базы источников…</div>';
+  let d;try{d=await api('/api/sources');}catch{d=null;}
+  if(route!=='admin:sources')return;
+  if(!d||!d.exists){$('#content').innerHTML='<div class="empty">База источников пуста.</div>';return;}
+  const kpis=`<div class="kpis">
+    <div class="kpi"><div class="k tip" data-tip="Всего источников (Zotero-книги + собранные ссылки) в едином поле.">Источников</div><div class="v">${d.total_books||0}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Всего смысловых чанков во всей базе.">Чанков</div><div class="v">${d.total_chunks||0}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Связей в графе базы источников.">Связей в графе</div><div class="v ok">${d.graph_edges??'—'}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Когда последний раз пересобирался граф.">Граф построен</div><div class="v" style="font-size:14px">${d.graph_built||'—'}</div></div></div>`;
+  const maxB=Math.max(1,...(d.origins||[]).map(o=>o.books));
+  const byOrigin=`<div class="panel"><div class="h"><span class="t">Разбивка по origin</span><span class="sp"></span><span class="badge tip" data-tip="Откуда пришёл источник: zotero — своя библиотека, community — собранное из сообществ, и т.д.">origin</span></div>
+    <div class="barlist">${(d.origins||[]).length?d.origins.map(o=>bar(`${ORIGIN_RU[o.origin]||o.origin} · ${o.books} ист · ${o.chunks} чанков`,o.books,maxB)).join(''):'<div class="empty">Нет данных.</div>'}</div></div>`;
+  const graph=`<div class="panel"><div class="h"><span class="t">Граф базы</span></div>
+    <div style="padding:var(--sp-3)"><div style="color:var(--dim);font-size:var(--fs-xs);margin-bottom:12px">Семантический граф всей базы, узлы раскрашены по origin — видно, как собранное из сообществ/веба ложится на библиотеку Zotero.</div>
+    <div class="act-line"><button class="btn primary" onclick="go('sources')">${icon('i-graph')} Открыть граф</button>
+      <a class="btn" href="/sources/graph" target="_blank" rel="noopener">${icon('i-ext')} Новая вкладка</a>
+      <button class="btn" onclick="rebuildSources(this)">${icon('i-restart')} Пересобрать</button></div></div></div>`;
+  $('#content').innerHTML=`<div class="svccap">${icon('i-graph')} Единая база источников (origin-tagged): своя библиотека Zotero и собранное из сообществ/веба в одном смысловом поле. Ниже — разбивка по origin и граф.</div>`+kpis+`<div class="grid2">${byOrigin}${graph}</div>`;
+}
+
+// ── Блог · база (Base B — свой контент + публикации) ──
+async function renderBlogBaseAdmin(){
+  $('#content').innerHTML='<div class="empty">загрузка базы блога…</div>';
+  let d;try{d=await api('/api/blogbase');}catch{d=null;}
+  if(route!=='admin:blogbase')return;
+  if(!d||!d.exists){$('#content').innerHTML='<div class="empty">База блога ещё не создана (tools/blog/blog.db).</div>';return;}
+  if(d.error){$('#content').innerHTML=`<div class="empty">Ошибка чтения базы блога: ${esc(d.error)}</div>`;return;}
+  const enabled=(d.networks||[]).filter(n=>n.enabled).length;
+  const kpis=`<div class="kpis">
+    <div class="kpi"><div class="k tip" data-tip="Всего статей/постов в базе блога (черновики + опубликованные).">Статей</div><div class="v">${d.articles||0}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Всего публикаций в разные площадки со статусом published.">Опубликовано</div><div class="v ok">${d.pub_total||0}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Сколько площадок включено для публикации.">Площадок вкл</div><div class="v ${enabled?'':'warn'}">${enabled}<small>/${(d.networks||[]).length}</small></div></div>
+    <div class="kpi"><div class="k tip" data-tip="Разных origin у статей (manual, digit_code, import…).">Origin</div><div class="v">${(d.by_origin||[]).length}</div></div></div>`;
+  const nets=`<div class="panel"><div class="h"><span class="t">Площадки</span></div>
+    <div class="matlist">${(d.networks||[]).map(n=>{const pub=(d.publications||[]).find(p=>p.network===n.name);return `<div class="matrow"><span class="src"><span class="chip ${n.enabled?'ok':'idle'}">${n.enabled?'вкл':'выкл'}</span></span><span class="ti">${esc(n.name)}</span><span class="tm">${pub?pub.n+' опубл.':'—'}</span></div>`;}).join('')||'<div class="empty">Нет площадок.</div>'}</div></div>`;
+  const maxO=Math.max(1,...(d.by_origin||[]).map(o=>o.n));
+  const origins=`<div class="panel"><div class="h"><span class="t">Статьи по origin</span></div>
+    <div class="barlist">${(d.by_origin||[]).length?d.by_origin.map(o=>bar(o.k,o.n,maxO)).join(''):'<div class="empty">Статей пока нет — импортируй свой канал (import-tg) или добавь вручную.</div>'}</div></div>`;
+  const recent=`<div class="panel"><div class="h"><span class="t">Последние статьи</span><span class="sp"></span><span class="badge">${(d.recent||[]).length}</span></div>
+    <div class="matlist">${(d.recent||[]).length?d.recent.map(r=>`<div class="matrow"><span class="src">#${r.id}</span><span class="ti">${esc(r.title||'—')}</span><span class="tm">${esc(r.origin||'')} · ${esc(r.created)}</span></div>`).join(''):'<div class="empty">Статей пока нет.</div>'}</div></div>`;
+  $('#content').innerHTML=`<div class="svccap">${icon('i-log')} База блога (Base B) — твой собственный контент: одна статья → много публикаций в разных сетях. Костяк хранилища и площадок; публикация под предохранителем.</div>`+kpis+`<div class="grid2">${nets}${origins}</div>`+recent;
+}
+
+// ── Конструктор крон-задач ──
+async function renderCronAdmin(){
+  $('#content').innerHTML='<div class="empty">загрузка задач…</div>';
+  let d;try{d=await api('/api/state');}catch{d={jobs:[]};}
+  if(route!=='admin:cron')return;
+  const jobs=(d.jobs||[]).filter(j=>!j.is_example);
+  const builder=`<div class="panel"><div class="h">${icon('i-add')}<span class="t">Конструктор крон-задачи</span></div>
+    <div class="form" id="cronForm" data-kind="shell">
+      <div class="seg" id="cronKind">
+        <button class="on" data-k="shell" onclick="cronKind('shell')">Скрипт / команда</button>
+        <button data-k="prompt" onclick="cronKind('prompt')">Промпт к Claude</button></div>
+      <div class="two">
+        <div class="fld"><label>ID задачи <span class="hint-i">латиница-через-дефис</span></label><input id="cId" type="text" placeholder="my-task"></div>
+        <div class="fld"><label>Расписание <span class="hint-i">cron или @every</span></label><input id="cSched" type="text" placeholder="0 9 * * *   или   @every 30m"></div></div>
+      <div class="fld" id="cShellWrap"><label>Shell-команда / путь к скрипту <span class="hint-i">запускается из каталога services</span></label>
+        <textarea id="cShell" placeholder="bash '/Users/.../script.sh' arg1 arg2"></textarea></div>
+      <div class="fld" id="cPromptWrap" style="display:none"><label>Промпт к Claude</label>
+        <textarea id="cPrompt" placeholder="Что должен сделать Claude по расписанию…"></textarea></div>
+      <div class="two">
+        <div class="fld" id="cModelWrap" style="display:none"><label>Модель</label>
+          <select id="cModel"><option value="">по умолчанию</option><option>haiku</option><option>sonnet</option><option>opus</option></select></div>
+        <div class="fld"><label>Требует ресурсов <span class="hint-i">requires · через запятую, можно пусто</span></label><input id="cReq" type="text" placeholder="internet,claude"></div></div>
+      <div class="fld"><label>Описание</label><input id="cDesc" type="text" placeholder="Что делает задача — увидишь в Обзоре"></div>
+      <div class="two">
+        <div class="fld"><label>Тип вывода результата</label>
+          <select id="cOutKind"><option value="">лог (по умолчанию)</option><option value="obsidian">Obsidian-заметка</option><option value="file">файл</option><option value="telegram">Telegram</option></select></div>
+        <div class="fld"><label>Куда писать <span class="hint-i">путь / @канал, если выбрал выше</span></label><input id="cOut" type="text" placeholder="оставь пусто для лога"></div></div>
+      <div class="actions"><button class="btn primary" onclick="createCron(this)">${icon('i-add')} создать задачу</button>
+        <span class="hint-i" style="color:var(--dim)">появится в списке ниже, в Обзоре и на странице сервиса «Cron»</span></div>
+    </div></div>`;
+  const list=`<div class="panel"><div class="h"><span class="t">Существующие задачи</span><span class="sp"></span><span class="badge">${jobs.length}</span></div>
+    ${jobs.length?jobs.map(cronAdminRow).join(''):'<div class="empty">Задач пока нет — создай первую выше.</div>'}</div>`;
+  $('#content').innerHTML=`<div class="svccap">${icon('i-add')} Крон-задачи создаются и удаляются прямо из UI — на основе своих скриптов (shell) или промптов к Claude. Запуск, вкл/выкл и логи — на странице сервиса «Cron».</div>`+builder+list;
+}
+function cronKind(k){const f=$('#cronForm');if(f)f.dataset.kind=k;
+  document.querySelectorAll('#cronKind button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  $('#cShellWrap').style.display=k==='shell'?'':'none';
+  $('#cPromptWrap').style.display=k==='prompt'?'':'none';
+  $('#cModelWrap').style.display=k==='prompt'?'':'none';}
+function cronAdminRow(j){
+  const h=j.health,chip=`<span class="chip ${HCLASS[h]||'unknown'}">${DOT[h]||'—'} ${HWORD[h]||h}</span>`;
+  return `<div class="row"><div class="meta"><div class="name">${chip}<span class="id">${esc(j.id)}</span></div>
+    <div class="desc">${esc(j.description||'(без описания)')}</div></div>
+    <div class="when"><b title="${esc(j.schedule)}">${esc(humanSchedule(j.schedule))}</b><br>↻ ${esc(j.next_run)}</div>
+    <div class="acts"><button class="btn sm danger" onclick="deleteCron('${jsq(j.id)}',this)">${icon('i-trash')} удалить</button></div></div>`;}
+async function createCron(btn){
+  const kind=($('#cronForm').dataset.kind)||'shell';
+  const body={id:$('#cId').value,schedule:$('#cSched').value,kind,desc:$('#cDesc').value,requires:$('#cReq').value};
+  if(kind==='prompt'){body.prompt=$('#cPrompt').value;body.model=$('#cModel').value;}
+  else body.shell=$('#cShell').value;
+  const ok=$('#cOutKind').value,out=$('#cOut').value.trim();if(ok&&out)body[ok]=out;
+  btn.disabled=true;const old=btn.innerHTML;btn.innerHTML='…создаю';
+  let r;try{r=await api('/api/cron/create',{method:'POST',body:JSON.stringify(body)});}catch(e){r={ok:false,out:e.message};}
+  btn.disabled=false;btn.innerHTML=old;
+  toast(r.ok?('✓ '+(r.out||'задача создана')):('✗ '+r.out));
+  if(r.ok)renderCronAdmin();
+}
+async function deleteCron(id,btn){if(!confirm('Удалить крон-задачу «'+id+'»? Необратимо.'))return;
+  btn.disabled=true;let r;try{r=await api('/api/cron/delete',{method:'POST',body:JSON.stringify({id})});}catch(e){r={ok:false,out:e.message};}
+  toast(r.ok?('✓ удалено: '+id):('✗ '+r.out));if(r.ok)renderCronAdmin();}
+
+// ── Блог · админ-панель ──
+async function renderBlogAdmin(){
+  $('#content').innerHTML='<div class="empty">загрузка данных блога…</div>';
+  let d;try{d=await api('/api/blog');}catch{d=null;}
+  if(route!=='admin:blog')return;
+  if(!d){$('#content').innerHTML='<div class="empty">Данные блога недоступны.</div>';return;}
+  const kpis=`<div class="kpis">
+    <div class="kpi"><div class="k tip" data-tip="Канал назначения публикаций блога.">Канал</div><div class="v" style="font-size:15px">${esc(d.channel)}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Черновики в очереди на ревью — ждут решения в боте-редакторе.">Черновики</div><div class="v ${d.counts.pending?'warn':''}">${d.counts.pending||0}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Сколько постов опубликовано в канал за всё время.">Опубликовано</div><div class="v ok">${d.published_total}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Сколько черновиков отклонено (skip).">Пропущено</div><div class="v">${d.counts.skipped||0}</div></div></div>`;
+  const maxS=Math.max(1,...d.sources.map(x=>x.n));
+  const sources=`<div class="panel"><div class="h"><span class="t">Откуда берутся черновики</span><span class="sp"></span><span class="badge tip" data-tip="Источник материала (source_spec) у черновиков.">источники</span></div>
+    <div class="barlist">${d.sources.length?d.sources.map(x=>bar(x.k,x.n,maxS)).join(''):'<div class="empty">Нет данных об источниках.</div>'}</div></div>`;
+  const pub=`<div class="panel"><div class="h"><span class="t">История публикаций</span><span class="sp"></span><span class="badge">${d.published_total}</span></div>
+    <div class="matlist">${d.published.length?d.published.map(p=>`<div class="matrow"><span class="src">${esc(p.ts)}</span><span class="ti">${p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title)}</a>`:esc(p.title)}</span><span class="tm">${esc(p.by)}</span></div>`).join(''):'<div class="empty">Публикаций пока нет.</div>'}</div></div>`;
+  const drafts=`<div class="panel"><div class="h"><span class="t">Очередь черновиков</span><span class="sp"></span><span class="badge">${d.drafts.length}</span></div>
+    <div class="matlist">${d.drafts.length?d.drafts.map(blogDraftRow).join(''):'<div class="empty">Очередь пуста.</div>'}</div></div>`;
+  $('#content').innerHTML=`<div class="svccap">${icon('i-log')} Блог-редактор собирает черновики из источников, ты ревьюишь их в боте, одобренные публикуются в канал ${esc(d.channel)}. Ниже — что в базе, история и метрики.</div>`+kpis+`<div class="grid2">${sources}${pub}</div>`+drafts;
+}
+function blogDraftRow(x){const st=x.status==='published'?'ok':x.status==='skipped'?'idle':'warn';
+  return `<div class="matrow"><span class="src"><span class="chip ${st}">${esc(x.status)}</span></span>
+    <span class="ti" title="${esc(x.text)}">${esc(x.text)}</span><span class="tm">${esc(x.created)} ${esc(x.by)}</span></div>`;}
+
+// ── Ассистент · аналитика ──
+const SLOT_RU={morning:'утро',day:'день',evening:'вечер',situational:'ситуативно',note:'заметки'};
+async function renderPsychAdmin(){
+  $('#content').innerHTML='<div class="empty">загрузка аналитики ассистента…</div>';
+  let d;try{d=await api('/api/psych');}catch{d=null;}
+  if(route!=='admin:psych')return;
+  if(!d){$('#content').innerHTML='<div class="empty">Данные ассистента недоступны.</div>';return;}
+  const t=d.totals||{},rate=t.checkins?Math.round((t.written/t.checkins)*100):0;
+  const kpis=`<div class="kpis">
+    <div class="kpi"><div class="k tip" data-tip="Сколько всего чек-инов (утро/день/вечер/ситуативно/заметки) пройдено.">Чек-инов</div><div class="v">${t.checkins||0}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Сколько разных дней с чек-инами — мера регулярности.">Дней с записями</div><div class="v">${t.days||0}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Доля чек-инов, успешно записанных в Obsidian.">Записано в Obsidian</div><div class="v ok">${rate}<small>%</small></div></div>
+    <div class="kpi"><div class="k tip" data-tip="Не дописанные в Obsidian (очередь outbox). Больше 0 — что-то застряло.">Очередь outbox</div><div class="v ${d.extra.outbox_pending?'warn':''}">${d.extra.outbox_pending||0}</div></div></div>`;
+  const maxSlot=Math.max(1,...d.slots.map(s=>s.done+s.in_progress+s.abandoned));
+  const slots=`<div class="panel"><div class="h"><span class="t">Чек-ины по слотам</span></div>
+    <div class="barlist">${d.slots.length?d.slots.map(s=>bar((SLOT_RU[s.slot]||s.slot)+' · '+s.done+'✓'+(s.in_progress?' / '+s.in_progress+'…':''),s.done,maxSlot)).join(''):'<div class="empty">Нет данных.</div>'}</div></div>`;
+  const tasks=`<div class="panel"><div class="h"><span class="t">Задачи и канал</span></div>
+    <div class="kpis" style="padding:var(--sp-3);margin:0">
+      <div class="kpi"><div class="k tip" data-tip="Активные задачи в трекере бота (синк с Obsidian/Todoist).">Активных задач</div><div class="v">${d.tasks.active||0}</div></div>
+      <div class="kpi"><div class="k tip" data-tip="Выполненные задачи.">Выполнено</div><div class="v ok">${d.tasks.done||0}</div></div>
+      <div class="kpi"><div class="k tip" data-tip="Сообщений из подключённого Telegram-канала, сохранённых ботом.">Сообщений канала</div><div class="v">${d.extra.channel_messages||0}</div></div>
+      <div class="kpi"><div class="k tip" data-tip="Записей в расписании напоминаний/чек-инов.">Расписаний</div><div class="v">${d.extra.schedule||0}</div></div></div></div>`;
+  const recent=`<div class="panel"><div class="h"><span class="t">Последние чек-ины</span></div>
+    <div class="matlist">${d.recent.length?d.recent.map(r=>`<div class="matrow"><span class="src">${esc(r.date)}</span><span class="ti">${esc(SLOT_RU[r.slot]||r.slot)} · ${esc(r.status)}</span><span class="tm">${r.written?'✓ Obsidian':'—'}</span></div>`).join(''):'<div class="empty">Нет данных.</div>'}</div></div>`;
+  $('#content').innerHTML=`<div class="svccap">${icon('i-svc-ok')} Ассистент ведёт чек-ины (утро/день/вечер), задачи и пишет всё в Obsidian. Здесь та же аналитика, что в самом боте: регулярность, разбивка по слотам и состояние очереди записи.</div>`+kpis+`<div class="grid2">${slots}${tasks}</div>`+recent;
+}
+
+// ── hh-отклик · админ-панель (редактируемый конфиг) ──
+async function renderHhAdmin(){
+  $('#content').innerHTML='<div class="empty">загрузка hh-конфига…</div>';
+  let d;try{d=await api('/api/hh');}catch{d=null;}
+  if(route!=='admin:hh')return;
+  if(!d){$('#content').innerHTML='<div class="empty">Данные hh недоступны.</div>';return;}
+  const c=d.config||{},arr=v=>Array.isArray(v)?v.join(', '):(v||'');
+  const kpis=`<div class="kpis">
+    <div class="kpi"><div class="k tip" data-tip="Всего откликов, отправленных автооткликом за всё время.">Откликов всего</div><div class="v">${d.applied_total}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Цель откликов за один прогон задачи (target_applies).">Цель за прогон</div><div class="v">${c.target_applies??'—'}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Сколько страниц выдачи перебирает за прогон (max_pages).">Страниц макс</div><div class="v">${c.max_pages??'—'}</div></div>
+    <div class="kpi"><div class="k tip" data-tip="Как открывается окно браузера при отклике.">Режим окна</div><div class="v" style="font-size:15px">${esc(c.window_mode||'—')}</div></div></div>`;
+  const form=`<div class="panel"><div class="h"><span class="t">Параметры автоотклика</span><span class="sp"></span><span class="badge tip" data-tip="Это hh-autoapply/config.json — редактируется и сохраняется здесь.">config.json</span></div>
+    <div class="form" id="hhForm">
+      <div class="two"><div class="fld"><label>Поисковый запрос <span class="hint-i">query</span></label><input id="h_query" type="text" value="${esc(c.query||'')}"></div>
+        <div class="fld"><label>Где искать <span class="hint-i">search_field · name=в заголовке</span></label><input id="h_search_field" type="text" value="${esc(c.search_field||'')}"></div></div>
+      <div class="two"><div class="fld"><label>Регион <span class="hint-i">area · код hh, 113=Россия</span></label><input id="h_area" type="text" value="${esc(c.area||'')}"></div>
+        <div class="fld"><label>ID резюме <span class="hint-i">resume_id · какое резюме прикреплять</span></label><input id="h_resume_id" type="text" value="${esc(c.resume_id||'')}"></div></div>
+      <div class="two"><div class="fld"><label>Опыт <span class="hint-i">experience · через запятую</span></label><input id="h_experience" type="text" value="${esc(arr(c.experience))}"></div>
+        <div class="fld"><label>Формат работы <span class="hint-i">work_format · REMOTE,HYBRID…</span></label><input id="h_work_format" type="text" value="${esc(arr(c.work_format))}"></div></div>
+      <div class="fld"><label>Ключевые слова в заголовке <span class="hint-i">title_keywords · через запятую</span></label><input id="h_title_keywords" type="text" value="${esc(arr(c.title_keywords))}"></div>
+      <div class="fld"><label>Стоп-слова в заголовке <span class="hint-i">title_exclude · отсекают мусор</span></label><input id="h_title_exclude" type="text" value="${esc(arr(c.title_exclude))}"></div>
+      <div class="two"><div class="fld"><label>Цель за прогон <span class="hint-i">target_applies</span></label><input id="h_target_applies" type="number" value="${c.target_applies??''}"></div>
+        <div class="fld"><label>Страниц макс <span class="hint-i">max_pages</span></label><input id="h_max_pages" type="number" value="${c.max_pages??''}"></div></div>
+      <div class="two"><div class="fld"><label>Режим окна <span class="hint-i">window_mode</span></label>
+        <select id="h_window_mode"><option ${c.window_mode==='background'?'selected':''}>background</option><option ${c.window_mode==='foreground'?'selected':''}>foreground</option></select></div>
+        <div class="fld"></div></div>
+      <div class="actions"><button class="btn primary" onclick="saveHh(this)">${icon('i-save')} сохранить конфиг</button>
+        <span class="hint-i" style="color:var(--dim)">меняет config.json — применится при следующем прогоне крона</span></div>
+    </div></div>`;
+  const recent=`<div class="panel"><div class="h"><span class="t">Последние отклики</span><span class="sp"></span><span class="badge">${d.recent.length}</span></div>
+    <div class="matlist">${d.recent.length?d.recent.map(r=>`<div class="matrow"><span class="src">#${esc(r.id)}</span><span class="ti">${r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.name)}</a>`:esc(r.name)}</span><span class="tm">↗</span></div>`).join(''):'<div class="empty">Откликов пока нет.</div>'}</div></div>`;
+  $('#content').innerHTML=`<div class="svccap">${icon('i-ext')} Автоотклик hh.ru запускается кроном (hh-autoapply-am/eve), но управляется отсюда: правишь параметры поиска и фильтры — они применятся при следующем прогоне. Запуск задачи — на странице «Cron».</div>`+kpis+form+recent;
+}
+async function saveHh(btn){
+  const F=id=>{const e=$('#h_'+id);return e?e.value:'';};
+  const body={query:F('query'),search_field:F('search_field'),area:F('area'),resume_id:F('resume_id'),
+    experience:F('experience'),work_format:F('work_format'),title_keywords:F('title_keywords'),title_exclude:F('title_exclude'),
+    target_applies:F('target_applies'),max_pages:F('max_pages'),window_mode:F('window_mode')};
+  btn.disabled=true;const old=btn.innerHTML;btn.innerHTML='…сохраняю';
+  let r;try{r=await api('/api/hh/config',{method:'POST',body:JSON.stringify(body)});}catch(e){r={ok:false,out:e.message};}
+  btn.disabled=false;btn.innerHTML=old;toast(r.ok?'✓ '+r.out:'✗ '+r.out);
+}
+
+/* ════════════════ тема · fx · сворачивание · настройки ════════════════ */
+function setTheme(name){
+  const root=document.documentElement;
+  if(name==='dark')root.removeAttribute('data-theme');else root.setAttribute('data-theme',name);
+  root.dataset.themeName=name;
+  try{localStorage.setItem('mc-theme',name);}catch(e){}
+  buildThemeCards();
+  syncOpenGraphTheme();
+}
+function buildThemeCards(){
+  let cur='glass';try{cur=localStorage.getItem('mc-theme')||'glass';}catch(e){}
+  const box=$('#setThemes');if(!box)return;
+  box.innerHTML=THEMES.map(t=>`<button class="theme-card ${t.id===cur?'on':''}" onclick="setTheme('${t.id}')">
+    <span class="sw" style="background:${t.sw}"></span><span class="nm">${esc(t.nm)}</span></button>`).join('');
+}
+function openSettings(){buildThemeCards();syncFxToggle();$('#setModal').classList.add('on');}
+function closeSettings(){$('#setModal').classList.remove('on');}
+$('#setModal').addEventListener('click',e=>{if(e.target.id==='setModal')closeSettings();});
+function toggleNav(){
+  const on=document.querySelector('.app').classList.toggle('nav-collapsed');
+  try{localStorage.setItem('mc-nav',on?'1':'0');}catch(e){}
+}
+function toggleFx(){
+  const off=document.body.classList.toggle('no-fx');
+  try{localStorage.setItem('mc-fx',off?'0':'1');}catch(e){}
+  syncFxToggle();
+}
+function syncFxToggle(){const t=$('#setFx');if(t)t.classList.toggle('on',!document.body.classList.contains('no-fx'));}
+function initChrome(){
+  try{if(localStorage.getItem('mc-nav')==='1')document.querySelector('.app').classList.add('nav-collapsed');}catch(e){}
+  try{if(localStorage.getItem('mc-fx')==='0')document.body.classList.add('no-fx');}catch(e){}
+  buildThemeCards();syncFxToggle();
+}
+
+/* ════════════════ старт + поллинг ════════════════ */
+initChrome();buildNav();setActive();render();
+setInterval(async()=>{
+  // сайдбар + пульс обновляются ВСЕГДА (дёшево, маленький DOM) — «живой взгляд» (T14)
+  try{const d=await api('/api/state');updateSidebar(d);updatePulse(d.health);
+    if(route==='overview')renderOverview();
+    else if(route.startsWith('svc:'))renderService(route.slice(4));
+    else if(route==='claude'&&ccLeft==='activity')loadList();
+  }catch{pulseDown();}
+},5000);
+</script>
+</body>
+</html>

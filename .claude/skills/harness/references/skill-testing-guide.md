@@ -82,14 +82,14 @@
 ```
 프롬프트: "{테스트 프롬프트}"
 스킬 경로: {스킬 경로}
-출력 경로: _workspace/iteration-N/eval-{id}/with_skill/outputs/
+출력 경로: 10 — Claude/Рабочее пространство/iteration-N/eval-{id}/with_skill/outputs/
 ```
 
 **Baseline 실행:**
 ```
 프롬프트: "{테스트 프롬프트}"  (동일)
 스킬: 없음
-출력 경로: _workspace/iteration-N/eval-{id}/without_skill/outputs/
+출력 경로: 10 — Claude/Рабочее пространство/iteration-N/eval-{id}/without_skill/outputs/
 ```
 
 ### 3-2. Baseline 선택
@@ -304,4 +304,4 @@ description 최적화가 필요한 경우:
 **규칙:**
 - eval 디렉토리는 숫자가 아닌 **서술적 이름** 사용 (예: `eval-multi-page-table-extraction`)
 - 각 iteration은 독립 디렉토리에 보존 (이전 iteration 덮어쓰기 금지)
-- `_workspace/`는 삭제하지 않음 — 사후 검증 및 감사 추적용
+- `10 — Claude/Рабочее пространство/`는 삭제하지 않음 — 사후 검증 및 감사 추적용

@@ -38,19 +38,19 @@ description: "{도메인} 에이전트 팀을 조율하는 오케스트레이터
 
 기존 산출물 존재 여부를 확인하여 실행 모드를 결정한다:
 
-1. `_workspace/` 디렉토리 존재 여부 확인
+1. `10 — Claude/Рабочее пространство/` 디렉토리 존재 여부 확인
 2. 실행 모드 결정:
-   - **`_workspace/` 미존재** → 초기 실행. Phase 1로 진행
-   - **`_workspace/` 존재 + 사용자가 부분 수정 요청** → 부분 재실행. 해당 에이전트만 재호출하고, 기존 산출물 중 수정 대상만 덮어쓴다
-   - **`_workspace/` 존재 + 새 입력 제공** → 새 실행. 기존 `_workspace/`를 `_workspace_{YYYYMMDD_HHMMSS}/`로 이동한 뒤 Phase 1 진행
+   - **`10 — Claude/Рабочее пространство/` 미존재** → 초기 실행. Phase 1로 진행
+   - **`10 — Claude/Рабочее пространство/` 존재 + 사용자가 부분 수정 요청** → 부분 재실행. 해당 에이전트만 재호출하고, 기존 산출물 중 수정 대상만 덮어쓴다
+   - **`10 — Claude/Рабочее пространство/` 존재 + 새 입력 제공** → 새 실행. 기존 `10 — Claude/Рабочее пространство/`를 `10 — Claude/Рабочее пространство/_archive_{YYYYMMDD_HHMMSS}/`로 이동한 뒤 Phase 1 진행
 3. 부분 재실행 시: 이전 산출물 경로를 에이전트 프롬프트에 포함하여, 에이전트가 기존 결과를 읽고 피드백을 반영하도록 지시
 
 ### Phase 1: 준비
 1. 사용자 입력 분석 — {무엇을 파악하는지}
-2. 작업 디렉토리에 `_workspace/` 생성
-   - **초기 실행**: 새 `_workspace/` 생성
-   - **새 실행**: 기존 `_workspace/`를 `_workspace_{YYYYMMDD_HHMMSS}/`로 이동한 직후 새 `_workspace/` 재생성
-3. 입력 데이터를 `_workspace/00_input/`에 저장
+2. 작업 디렉토리에 `10 — Claude/Рабочее пространство/` 생성
+   - **초기 실행**: 새 `10 — Claude/Рабочее пространство/` 생성
+   - **새 실행**: 기존 `10 — Claude/Рабочее пространство/`를 `10 — Claude/Рабочее пространство/_archive_{YYYYMMDD_HHMMSS}/`로 이동한 직후 새 `10 — Claude/Рабочее пространство/` 재생성
+3. 입력 데이터를 `10 — Claude/Рабочее пространство/00_input/`에 저장
 
 ### Phase 2: 팀 구성
 
@@ -94,8 +94,8 @@ description: "{도메인} 에이전트 팀을 조율하는 오케스트레이터
 
 | 팀원 | 출력 경로 |
 |------|----------|
-| {teammate-1} | `_workspace/{phase}_{teammate-1}_{artifact}.md` |
-| {teammate-2} | `_workspace/{phase}_{teammate-2}_{artifact}.md` |
+| {teammate-1} | `10 — Claude/Рабочее пространство/{phase}_{teammate-1}_{artifact}.md` |
+| {teammate-2} | `10 — Claude/Рабочее пространство/{phase}_{teammate-2}_{artifact}.md` |
 
 **리더 모니터링:**
 - 팀원이 유휴 상태가 되면 자동 알림 수신
@@ -111,10 +111,10 @@ description: "{도메인} 에이전트 팀을 조율하는 오케스트레이터
 ### Phase 5: 정리
 1. 팀원들에게 종료 요청 (SendMessage)
 2. 팀 정리 (TeamDelete)
-3. `_workspace/` 디렉토리 보존 (중간 산출물은 삭제하지 않음 — 사후 검증·감사 추적용)
+3. `10 — Claude/Рабочее пространство/` 디렉토리 보존 (중간 산출물은 삭제하지 않음 — 사후 검증·감사 추적용)
 4. 사용자에게 결과 요약 보고
 
-> **팀 재구성이 필요한 경우:** Phase별로 다른 전문가 조합이 필요하면, 현재 팀을 TeamDelete로 정리한 뒤 새 TeamCreate로 다음 Phase의 팀을 구성한다. 이전 팀의 산출물은 `_workspace/`에 보존되므로 새 팀이 Read로 접근 가능.
+> **팀 재구성이 필요한 경우:** Phase별로 다른 전문가 조합이 필요하면, 현재 팀을 TeamDelete로 정리한 뒤 새 TeamCreate로 다음 Phase의 팀을 구성한다. 이전 팀의 산출물은 `10 — Claude/Рабочее пространство/`에 보존되므로 새 팀이 Read로 접근 가능.
 
 ## 데이터 흐름
 
@@ -185,19 +185,19 @@ description: "{도메인} 에이전트를 조율하는 오케스트레이터. {�
 ## 워크플로우
 
 ### Phase 0: 컨텍스트 확인
-(Template A와 동일 — `_workspace/` 존재 여부 분기)
+(Template A와 동일 — `10 — Claude/Рабочее пространство/` 존재 여부 분기)
 
 ### Phase 1: 준비
 1. 입력 분석
-2. `_workspace/` 생성 (초기 실행 시, 또는 새 실행에서 기존 `_workspace/`를 보관 디렉토리로 이동한 직후)
+2. `10 — Claude/Рабочее пространство/` 생성 (초기 실행 시, 또는 새 실행에서 기존 `10 — Claude/Рабочее пространство/`를 보관 디렉토리로 이동한 직후)
 
 ### Phase 2: 병렬 실행
 단일 메시지에서 N개 Agent 도구를 동시 호출:
 
 | 에이전트 | 입력 | 출력 | model | run_in_background |
 |---------|------|------|-------|-------------------|
-| {agent-1} | {소스} | `_workspace/{phase}_{agent}_{artifact}.md` | opus | true |
-| {agent-2} | {소스} | `_workspace/{phase}_{agent}_{artifact}.md` | opus | true |
+| {agent-1} | {소스} | `10 — Claude/Рабочее пространство/{phase}_{agent}_{artifact}.md` | opus | true |
+| {agent-2} | {소스} | `10 — Claude/Рабочее пространство/{phase}_{agent}_{artifact}.md` | opus | true |
 
 ### Phase 3: 통합
 1. 각 에이전트의 반환값 수집
@@ -205,7 +205,7 @@ description: "{도메인} 에이전트를 조율하는 오케스트레이터. {�
 3. 통합 로직 적용 → 최종 산출물
 
 ### Phase 4: 정리
-1. `_workspace/` 보존
+1. `10 — Claude/Рабочее пространство/` 보존
 2. 결과 요약 보고
 
 ## 에러 핸들링
@@ -240,21 +240,21 @@ description: "{도메인} 오케스트레이터 (하이브리드). {키워드}. 
 **실행 모드:** 서브 에이전트
 
 단일 메시지에서 Agent 도구로 N개 에이전트 병렬 호출 (`run_in_background: true`).
-각 결과는 `_workspace/02_{agent}_raw.md`에 저장.
+각 결과는 `10 — Claude/Рабочее пространство/02_{agent}_raw.md`에 저장.
 
 ### Phase 3: 합의 기반 통합
 **실행 모드:** 에이전트 팀
 
 1. `TeamCreate`로 통합 팀 구성 (editor + fact-checker + synthesizer)
-2. `TaskCreate`로 작업 분배 — 모두 Phase 2의 `_workspace/02_*` 파일을 Read
+2. `TaskCreate`로 작업 분배 — 모두 Phase 2의 `10 — Claude/Рабочее пространство/02_*` 파일을 Read
 3. 팀원들이 `SendMessage`로 상충 데이터를 논의, 파일 기반으로 합의안 도출
-4. 최종 통합본 `_workspace/03_integrated.md` 생성
+4. 최종 통합본 `10 — Claude/Рабочее пространство/03_integrated.md` 생성
 5. `TeamDelete`로 팀 정리
 
 ### Phase 4: 독립 검증
 **실행 모드:** 서브 에이전트
 
-단일 QA 서브 에이전트가 `_workspace/03_integrated.md`를 입력으로 받아 검증 보고서 생성.
+단일 QA 서브 에이전트가 `10 — Claude/Рабочее пространство/03_integrated.md`를 입력으로 받아 검증 보고서 생성.
 ```
 
 **하이브리드 전환 규칙:**
@@ -269,7 +269,7 @@ description: "{도메인} 오케스트레이터 (하이브리드). {키워드}. 
 1. **실행 모드를 먼저 명시** — 오케스트레이터 상단에 "에이전트 팀" / "서브 에이전트" / "하이브리드" 중 하나 명시. 하이브리드면 Phase별 모드 표 필수
 2. **팀 모드는 TeamCreate/SendMessage/TaskCreate 사용법을 구체적으로** — 팀 구성, 작업 등록, 통신 규칙
 3. **서브 모드는 Agent 도구 파라미터를 완전히 명시** — name, subagent_type, prompt, run_in_background, model
-4. **파일 경로는 절대적으로** — 상대 경로 금지, `_workspace/` 기준 명확한 경로
+4. **파일 경로는 절대적으로** — 상대 경로 금지, `10 — Claude/Рабочее пространство/` 기준 명확한 경로
 5. **Phase 간 의존성 명시** — 어떤 Phase가 어떤 Phase의 결과에 의존하는지. 하이브리드는 모드 전환 지점을 특히 강조
 6. **에러 핸들링은 현실적으로** — "모든 것이 성공한다"고 가정하지 않음
 7. **테스트 시나리오 필수** — 정상 1 + 에러 1 이상

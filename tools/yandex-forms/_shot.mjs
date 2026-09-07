@@ -1,0 +1,10 @@
+import { chromium } from 'playwright';
+import { homedir } from 'os'; import { join } from 'path';
+const [url, out] = process.argv.slice(2);
+const ctx = await chromium.launchPersistentContext(join(homedir(), '.yandex-forms-profile'), { headless: true, channel: 'chrome', viewport:{width:1400,height:1600} });
+const page = ctx.pages()[0] || await ctx.newPage();
+await page.goto(url, { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(5000);
+await page.screenshot({ path: out, fullPage: true });
+console.log('ok', out);
+await ctx.close();

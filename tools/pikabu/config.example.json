@@ -1,0 +1,16 @@
+{
+  "_": [
+    "Доступов здесь нет и не нужно: инструмент работает под твоей живой сессией",
+    "Chrome (python3 pikabu.py login). Файл нужен только чтобы поменять гарды —",
+    "без него берутся значения по умолчанию.",
+    "cp config.example.json config.json и правь."
+  ],
+  "guards": {
+    "min_hours_between_posts": 12,
+    "max_posts_per_day": 2,
+    "days_between_same_community": 30,
+    "comment_to_post_ratio": 5,
+    "min_account_rating": 50,
+    "min_account_age_days": 14
+  }
+}

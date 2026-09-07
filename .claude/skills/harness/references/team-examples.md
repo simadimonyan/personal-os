@@ -33,7 +33,7 @@
 ```
 Phase 1: 준비
   - 사용자 입력 분석 (주제, 조사 모드 파악)
-  - _workspace/ 생성
+  - 10 — Claude/Рабочее пространство/ 생성
 
 Phase 2: 팀 구성
   - TeamCreate(team_name: "research-team", members: [
@@ -64,7 +64,7 @@ Phase 4: 통합
 Phase 5: 정리
   - 팀원들 종료 요청
   - 팀 정리
-  - _workspace/ 보존 (사후 검증·감사 추적용)
+  - 10 — Claude/Рабочее пространство/ 보존 (사후 검증·감사 추적용)
 ```
 
 ### 팀 통신 패턴
@@ -129,7 +129,7 @@ description: "SF 소설의 세계관을 구축하는 전문가. 물리 법칙, �
 
 ## 입력/출력 프로토콜
 - 입력: 사용자의 세계관 컨셉, 장르 요구사항
-- 출력: `_workspace/01_worldbuilder_setting.md`
+- 출력: `10 — Claude/Рабочее пространство/01_worldbuilder_setting.md`
 - 형식: 마크다운. 섹션별 (물리/사회/기술/역사/장소)
 
 ## 팀 통신 프로토콜
@@ -158,8 +158,8 @@ Phase 1: TeamCreate(team_name: "novel-team", members: [worldbuilder, character-d
          → character-designer가 주인공 설정 시 plot-architect에게 SendMessage
 
 Phase 2: Phase 1 팀 정리 → prose-stylist를 서브 에이전트로 호출 (단독 집필이므로 팀 불필요)
-         prose-stylist가 _workspace/의 3개 산출물을 Read하여 집필
-         → 결과를 _workspace/02_prose_draft.md에 저장
+         prose-stylist가 10 — Claude/Рабочее пространство/의 3개 산출물을 Read하여 집필
+         → 결과를 10 — Claude/Рабочее пространство/02_prose_draft.md에 저장
 
 Phase 3: 새 팀 생성 — TeamCreate(team_name: "review-team", members: [science-consultant, continuity-manager])
          (세션당 한 팀만 활성이지만, Phase 1 팀을 정리했으므로 새 팀 생성 가능)
@@ -216,8 +216,8 @@ description: "웹툰 패널의 품질을 검수하는 전문가. 구도, 캐릭�
 - 주관적 취향이 아닌 객관적 기준(일관성, 가독성, 구도)으로 판단
 
 ## 입력/출력 프로토콜
-- 입력: `_workspace/panels/` 디렉토리의 패널 이미지들
-- 출력: `_workspace/review_report.md`
+- 입력: `10 — Claude/Рабочее пространство/panels/` 디렉토리의 패널 이미지들
+- 출력: `10 — Claude/Рабочее пространство/review_report.md`
 - 형식:
   ```
   ## Panel {N}

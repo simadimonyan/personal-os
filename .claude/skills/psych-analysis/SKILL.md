@@ -24,7 +24,7 @@ description: "Команда психологов для анализа личн
 
 **Кросс-командное взаимодействие:**
 - Может быть запрошена мастер-оркестратором (personal-os)
-- Результаты передаются в `_workspace/cross-team/psych-team_*` для других команд
+- Результаты передаются в `10 — Claude/Рабочее пространство/cross-team/psych-team_*` для других команд
 - Читает `.claude/skills/agent-context/references/cross-team.md` для деталей
 
 ---
@@ -33,9 +33,9 @@ description: "Команда психологов для анализа личн
 
 ### 0a. Контекст рабочей папки
 При запуске определить режим:
-- `_workspace/psych/` существует + запрос на обновление → **частичный перезапуск** (уточнить какую фазу перезапустить)
-- `_workspace/psych/` существует + новые данные → переименовать в `_workspace/psych_prev/`, начать заново
-- `_workspace/psych/` нет → **первый запуск**
+- `10 — Claude/Рабочее пространство/psych/` существует + запрос на обновление → **частичный перезапуск** (уточнить какую фазу перезапустить)
+- `10 — Claude/Рабочее пространство/psych/` существует + новые данные → переименовать в `10 — Claude/Рабочее пространство/psych_prev/`, начать заново
+- `10 — Claude/Рабочее пространство/psych/` нет → **первый запуск**
 
 ### 0b. Загрузка контекста агентов из Obsidian
 
@@ -64,8 +64,8 @@ node ~/.claude/skills/obsidian/driver.mjs obsidian_read '{"name":"lead-psycholog
 
 Создать директории:
 ```
-_workspace/psych/collected/
-_workspace/psych/analyses/
+10 — Claude/Рабочее пространство/psych/collected/
+10 — Claude/Рабочее пространство/psych/analyses/
 ```
 
 ### 1a. Сбор заметок (knowledge-agent)
@@ -82,7 +82,7 @@ _workspace/psych/analyses/
 4. obsidian_search("чувства") или obsidian_search("эмоции")
 5. Если есть раздел 01 или 02 (личные заметки) — прочитай все файлы оттуда
 
-Собери всё содержимое в один файл _workspace/psych/collected/obsidian_notes.md.
+Собери всё содержимое в один файл 10 — Claude/Рабочее пространство/psych/collected/obsidian_notes.md.
 Формат: для каждой заметки — заголовок (имя файла + дата если есть), затем содержимое.
 Сохрани максимум текста — не сокращай.
 ```
@@ -99,8 +99,11 @@ _workspace/psych/analyses/
 2. Для каждого из топ-10 активных личных чатов (не группы, не каналы):
    get_chat_history(chat_id, limit=50) — последние 50 сообщений
 3. Для групповых чатов где Димитри активен — get_chat_history(limit=30)
+4. Если для анализа нужен ВЕСЬ диалог с конкретным человеком (значимые отношения) —
+   export_chat в 11 — Архив/Телеграм чаты/{чат}/ и работать с готовым файлом:
+   node ~/.claude/skills/telegram/driver.cjs export_chat '{"chat_id":"<id>","out_dir":"<путь>"}'
 
-Собери в файл _workspace/psych/collected/telegram_dialogues.md.
+Собери в файл 10 — Claude/Рабочее пространство/psych/collected/telegram_dialogues.md.
 Формат: для каждого чата — название/имя, затем сообщения с указанием кто написал.
 Исключи технические боты и спам-каналы.
 ВАЖНО: не отправляй никаких сообщений, только чтение.
@@ -119,31 +122,31 @@ _workspace/psych/analyses/
 ### 2a. Когнитивный анализ (cognitive-analyst)
 ```
 Прочитай .claude/agents/cognitive-analyst.md
-Прочитай _workspace/psych/collected/
+Прочитай 10 — Claude/Рабочее пространство/psych/collected/
 Прочитай Obsidian: obsidian_search({"query":"убеждения мышление", "section":"01", "limit":10})
 Выполни анализ, сохрани:
-- _workspace/psych/analyses/cognitive_analysis.md (полный)
-- _workspace/psych/analyses/cognitive_hypotheses.md (3-5 ключевых гипотез для команды)
+- 10 — Claude/Рабочее пространство/psych/analyses/cognitive_analysis.md (полный)
+- 10 — Claude/Рабочее пространство/psych/analyses/cognitive_hypotheses.md (3-5 ключевых гипотез для команды)
 ```
 
 ### 2b. Эмоциональный анализ (emotional-analyst)
 ```
 Прочитай .claude/agents/emotional-analyst.md
-Прочитай _workspace/psych/collected/
+Прочитай 10 — Claude/Рабочее пространство/psych/collected/
 Прочитай Obsidian: obsidian_search({"query":"чувства эмоции настроение", "section":"02", "limit":10})
 Выполни анализ, сохрани:
-- _workspace/psych/analyses/emotional_analysis.md (полный)
-- _workspace/psych/analyses/emotional_hypotheses.md (3-5 ключевых гипотез для команды)
+- 10 — Claude/Рабочее пространство/psych/analyses/emotional_analysis.md (полный)
+- 10 — Claude/Рабочее пространство/psych/analyses/emotional_hypotheses.md (3-5 ключевых гипотез для команды)
 ```
 
 ### 2c. Реляционный анализ (relational-analyst)
 ```
 Прочитай .claude/agents/relational-analyst.md
-Прочитай _workspace/psych/collected/
+Прочитай 10 — Claude/Рабочее пространство/psych/collected/
 Прочитай Obsidian: obsidian_search({"query":"отношения люди общение", "limit":10})
 Выполни анализ, сохрани:
-- _workspace/psych/analyses/relational_analysis.md (полный)
-- _workspace/psych/analyses/relational_hypotheses.md (3-5 ключевых гипотез для команды)
+- 10 — Claude/Рабочее пространство/psych/analyses/relational_analysis.md (полный)
+- 10 — Claude/Рабочее пространство/psych/analyses/relational_hypotheses.md (3-5 ключевых гипотез для команды)
 ```
 
 **Ожидание:** все шесть файлов (3 полных + 3 с гипотезами) существуют.
@@ -158,14 +161,14 @@ _workspace/psych/analyses/
 
 ```
 Прочитай .claude/agents/lead-psychologist.md
-Прочитай ВСЕ файлы из _workspace/psych/analyses/ (6 файлов)
-Прочитай исходные данные из _workspace/psych/collected/
+Прочитай ВСЕ файлы из 10 — Claude/Рабочее пространство/psych/analyses/ (6 файлов)
+Прочитай исходные данные из 10 — Claude/Рабочее пространство/psych/collected/
 Прочитай Obsidian: obsidian_search({"query":"психологический портрет", "section":"10", "limit":5})
 
 ВАЖНО: Прочитай сначала файлы *_hypotheses.md — это ключевые наблюдения коллег.
 Найди пересечения гипотез между тремя аналитиками — там самые устойчивые паттерны.
 
-Синтезируй финальный портрет, сохрани в _workspace/psych/final_report.md.
+Синтезируй финальный портрет, сохрани в 10 — Claude/Рабочее пространство/psych/final_report.md.
 Синхронизируй контекст в Obsidian: agent-context для lead-psychologist.
 ```
 
@@ -173,7 +176,7 @@ _workspace/psych/analyses/
 
 ## Phase 4: Финальный вывод
 
-1. Прочитать `_workspace/psych/final_report.md`
+1. Прочитать `10 — Claude/Рабочее пространство/psych/final_report.md`
 2. Вывести пользователю полный отчёт
 3. Спросить: "Какой раздел хочешь исследовать глубже?"
 
@@ -215,3 +218,17 @@ _workspace/psych/analyses/
 **Нормальный:** запрос "проанализируй меня" → Phase 0 (первый запуск) → параллельный сбор → параллельный анализ → синтез → отчёт
 
 **Ошибочный:** Telegram недоступен → Phase 1 только Obsidian → Phase 2-3 без реляционного контекста из переписок → отчёт с оговоркой
+
+## Бюджет контекста
+
+Скилл — диспетчер: раздаёт задания агентам и принимает отчёты. Сам артефакты
+агентов не читает и не «проверяет глазами» — проверка это ещё один агент.
+Потолки: сессия 55% окна мягкий / 88% жёсткий, субагент 40k / 60k токенов.
+Промежуточное — файлом в рабочее пространство команды, в диалог путь и суть.
+Фича доведена до конца — чекпоинт и дальше с чистой сессии:
+
+```bash
+python3 .claude/hooks/checkpoint.py --note "<что сделано>" --next "<следующий шаг>"
+```
+
+Подробности — скилл `context-budget`.

@@ -1,0 +1,92 @@
+{
+  "services": [
+    {
+      "name": "claude-local-api",
+      "cmd": [
+        "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+        "server.py"
+      ],
+      "cwd": "/Users/dimitrisimonyan/Desktop/personal os/services/claude-local-api-main",
+      "enabled": true,
+      "autorestart": true,
+      "env": {
+        "CLAUDE_API_MODEL": "haiku"
+      }
+    },
+    {
+      "name": "cron",
+      "cmd": [
+        "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+        "cron.py"
+      ],
+      "cwd": "/Users/dimitrisimonyan/Desktop/personal os/services/cron",
+      "enabled": true,
+      "autorestart": true
+    },
+    {
+      "name": "tg-assistant",
+      "cmd": [
+        ".venv/bin/python",
+        "run.py"
+      ],
+      "cwd": "/Users/dimitrisimonyan/Desktop/personal os/services/tg-assistant",
+      "enabled": true,
+      "autorestart": true,
+      "note": "Личный ассистент (бывший tg-psych-bot): чек-ины, задачи, заметки, /hh, ловля ссылок из ProLab120. Под супервизором pos."
+    },
+    {
+      "name": "tg-blog-editor",
+      "cmd": [
+        ".venv/bin/python",
+        "bot.py",
+        "run"
+      ],
+      "cwd": "/Users/dimitrisimonyan/Desktop/personal os/services/tg-blog-editor",
+      "enabled": true,
+      "autorestart": true,
+      "note": "Бот-редактор @digit_code. Ревью черновиков с кнопками публикации. Рекомендации шлёт крон digitcode-digest, страховка — blog-autopublish."
+    },
+    {
+      "name": "zotero-index",
+      "cmd": [
+        "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+        "indexer.py"
+      ],
+      "cwd": "/Users/dimitrisimonyan/Desktop/personal os/services/zotero-index",
+      "enabled": true,
+      "autorestart": true,
+      "env": {
+        "ZOTERO_REFRESH_SEC": "21600"
+      },
+      "note": "Инкрементальная векторизация библиотеки Zotero (аннотации+текст+граф) каждые 6ч, только при изменениях. Пишет tools/zotero/status.json для mission-control. Модель грузится подпроцессом и освобождается между циклами."
+    },
+    {
+      "name": "sources-index",
+      "cmd": [
+        "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+        "indexer.py"
+      ],
+      "cwd": "/Users/dimitrisimonyan/Desktop/personal os/services/sources-index",
+      "enabled": true,
+      "autorestart": true,
+      "env": {
+        "SOURCES_REFRESH_SEC": "21600"
+      },
+      "note": "Постоянный забор ссылок из сообществ (ProLab120 и др.) в единую базу источников каждые 6ч. Идемпотентно, перестраивает граф по origin, пишет status.json для mission-control. Чаты — в services/sources-index/config.json."
+    },
+    {
+      "name": "mission-control",
+      "cmd": [
+        "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+        "server.py"
+      ],
+      "cwd": "/Users/dimitrisimonyan/Desktop/personal os/services/mission-control",
+      "enabled": true,
+      "autorestart": true,
+      "env": {
+        "PORT": "8787"
+      },
+      "note": "Веб-пульт Personal OS (127.0.0.1:8787). Дашборд сервисов/крона/hh/блога с кнопками управления через cronctl и pos."
+    }
+  ]
+}

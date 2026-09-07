@@ -1,0 +1,62 @@
+{
+  "settings": {
+    "lookback_hours": 24,
+    "max_per_source": 15,
+    "model": "sonnet",
+    "digest_obsidian": "10 — Claude/Рабочее пространство/personal-os/Инфополе.md",
+    "digest_telegram": null,
+    "fetch_full": true
+  },
+  "rss": [
+    {
+      "name": "Hacker News",
+      "url": "https://hnrss.org/frontpage"
+    },
+    {
+      "name": "TechCrunch",
+      "url": "https://techcrunch.com/feed/"
+    },
+    {
+      "name": "The Verge",
+      "url": "https://www.theverge.com/rss/index.xml"
+    },
+    {
+      "name": "Habr (best)",
+      "url": "https://habr.com/ru/rss/best/daily/?fl=ru"
+    },
+    {
+      "name": "VC.ru",
+      "url": "https://vc.ru/rss"
+    },
+    {
+      "name": "MIT Tech Review",
+      "url": "https://www.technologyreview.com/feed/"
+    },
+    {
+      "name": "Habr (статьи)",
+      "url": "https://habr.com/ru/rss/articles/?fl=ru"
+    }
+  ],
+  "telegram_channels": [
+    {
+      "name": "Нажми Enter (тренды/IT/бизнес)",
+      "chat": "@PushEnter"
+    },
+    {
+      "name": "Data Science SQL hub",
+      "chat": "@sqlhub"
+    },
+    {
+      "name": "Linuxgram",
+      "chat": "@linuxgram"
+    },
+    {
+      "name": "talismanovIT",
+      "chat": "@talismanovIT"
+    },
+    {
+      "name": "Прямой Эфир Новости",
+      "chat": "@novosti_efir"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "interval_sec": 21600,
+  "per_cycle_limit": 300,
+  "chats": [
+    {
+      "chat_id": "-1001648689086",
+      "origin": "community",
+      "limit": 300,
+      "name": "ProLab120"
+    }
+  ]
+}

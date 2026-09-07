@@ -1,0 +1,12 @@
+# Собранные фотореал-клипы (рендерятся в UE5 вручную, тяжёлые).
+# Свои под каждый пресет: clips/{preset}/*.mov — папки-пресеты сохраняем (.gitkeep).
+Resources/clips/**/*.mov
+Resources/clips/**/*.mp4
+# Скачанные картинки-стендины (сгенерированные лица, временные)
+Resources/clips/**/still.jpg
+Resources/clips/**/still.png
+
+# SwiftPM
+.build/
+.swiftpm/
+*.xcodeproj

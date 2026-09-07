@@ -1,0 +1,18 @@
+# --- core ---
+aiogram==3.13.1            # bot framework, FSM, inline keyboards
+aiosqlite==0.20.0          # async SQLite
+APScheduler==3.10.4        # планировщик внутри процесса
+ruamel.yaml==0.18.6        # frontmatter merge без потери порядка ключей
+python-dotenv==1.0.1       # .env секреты
+pydantic==2.9.2            # модели метрик / валидация
+pydantic-settings==2.5.2   # Settings из .env + config.toml
+Pillow==11.0.0             # рендер PNG heatmap состояний (карта «как на GitHub»)
+aiohttp==3.10.11           # HTTP-клиент Todoist API (3-сторонняя синхра задач)
+
+# --- dev (опц.) ---
+pytest==8.3.3
+pytest-asyncio==0.24.0
+ruff==0.6.9                # линтер + форматтер
+
+# --- ТРАНСКРИПЦИЯ: НЕ ставить в MVP (нет ключа). Включить позже: ---
+# faster-whisper==1.0.3    # local Whisper, офлайн, для будущей расшифровки ГС

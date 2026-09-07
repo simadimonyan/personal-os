@@ -1,0 +1,57 @@
+{
+  "query": "Java",
+  "search_field": "name",
+  "order_by": "publication_time",
+  "area": "113",
+  "experience": [
+    "noExperience",
+    "between1And3",
+    "between3And6",
+    "moreThan6"
+  ],
+  "work_format": [
+    "REMOTE",
+    "HYBRID",
+    "ON_SITE"
+  ],
+  "perPage": 50,
+  "target_applies": 20,
+  "max_pages": 6,
+  "title_keywords": [
+    "java",
+    "джава"
+  ],
+  "title_exclude": [
+    "javascript",
+    "js ",
+    "js-",
+    "продаж",
+    "менеджер",
+    "оператор",
+    "аналитик",
+    "qa",
+    "тест",
+    "data scien"
+  ],
+  "resume_id": "316c7d10ff0f61848e0039ed1f3551365a3661",
+  "window_mode": "background",
+  "llm": {
+    "enabled": true,
+    "model": "haiku",
+    "min_score": 4,
+    "batch_size": 8,
+    "max_screened": 25,
+    "personal_letter": true,
+    "criteria": [
+      "уровень Junior/Middle, не Senior и не Lead",
+      "основной стек — Java или Kotlin (Spring Boot, Hibernate, PostgreSQL); Android на Kotlin тоже подходит",
+      "удалёнка или гибрид",
+      "не подходят: аналитика, тестирование, поддержка, преподавание, менеджмент, продажи"
+    ],
+    "letter_notes": []
+  },
+  "headless": true,
+  "notify": {
+    "runs": true
+  }
+}
