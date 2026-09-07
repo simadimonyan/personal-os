@@ -419,6 +419,19 @@ def tick(now: dt.datetime | None = None) -> int:
     ran = 0
     deferred: list[str] = []
     for job in due:
+        # Проход бывает длинным: одна задача идёт десятки минут, и к моменту
+        # запуска следующей конфиг успевает измениться. Снимок, снятый в начале
+        # прохода, к этому моменту врёт — правки расписания и таймаутов не
+        # видны, а удалённая задача выполняется ещё раз. Поэтому перечитываем
+        # задачу перед самым стартом.
+        fresh = find_job(load_jobs(), job["id"])
+        if fresh is None:
+            log(f"⏭ '{job['id']}' удалена из конфига по ходу прохода — пропускаю")
+            continue
+        job = fresh
+        if not job.get("enabled", True):
+            log(f"⏭ '{job['id']}' выключена по ходу прохода — пропускаю")
+            continue
         ok, missing = requirements_met(job)
         if not ok:
             rec = state.setdefault(job["id"], {})
